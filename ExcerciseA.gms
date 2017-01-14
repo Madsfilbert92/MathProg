@@ -11,7 +11,7 @@ SETS
         Products(Material)   'Products'  / MAS, KUS, KOS, KUV, KOV, HSEL, LSEL, PAP/
         Regions   'Regions'            /EU, IE, PA, KI/
         ProductionMaterials(Material) 'Materials used for other products' /MAT,KUT,KOT,MAK,KUK,KOK,HSEL,LSEL/
-        Timber(Material)    'Types of timber' /MAT, KUT, KOT, MAK, KUK, KOK/
+        Timber(ProductionMaterial)    'Types of timber' /MAT, KUT, KOT, MAK, KUK, KOK/
         SawMillProducts(Material) 'Products produced at the sawmill' /MAS, KUS, KOS/
         PlywoodMillProducts(Material) 'Products prodcued at plywoodmill' /KUV, KOV/
         FuelProducts(Material) 'Products producing fuel' /MAS, KUS, KOS, KUV, KOV/
@@ -131,10 +131,10 @@ equations
 							
 		sawMillCap.. 		sum((sm,j), x(sm,j)) =l= 200000; 
  		plywoodMillCap.. 	sum((pm,j), x(pm,j)) =l= 90000;
- 		line1Cap..			sum((pmp,j), x('HSEL',j)) =l= 220000;
- 		line2Cap..			sum((pmp,j), x('LSEL',j)) =l= 180000;
- 		paperMillCap..		sum((i,j), x('8',j)) =l= 80000;
- 		surPlus(j)..		sum(i, t(i)-x(i,j)*u(i,j)) =e= s(i);
+ 		line1Cap..			sum(j, x('HSEL',j)) =l= 220000;
+ 		line2Cap..			sum(j, x('LSEL',j)) =l= 180000;
+ 		paperMillCap..		sum(i, x('8',j)) =l= 80000;
+ 		surPlus(k)..		t(k) - sum((i,j), x(i,j)*ProductReq(i,k)) =e= s(i);
  		MASproduction..		sum(j, 2*x('1',j)) =l= t('1');
         KUSKUVproduction..	sum(j, 2*x('2',j) + 2.8*x('4',j)) =l= t('2');
         KOSKOVproduction..	sum(j, 2*x('3',j) + 2.8*x('5',j)) =l= t('3');
