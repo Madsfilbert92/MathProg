@@ -1,4 +1,4 @@
-GAMS 24.7.4  r58773 Released Sep 19, 2016 DEX-DEG x86 64bit/MacOS X                                                                                                                                                                    01/14/17 12:42:31 Page 1
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      01/14/17 12:55:31 Page 1
 G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
 C o m p i l a t i o n
 
@@ -56,7 +56,7 @@ C o m p i l a t i o n
   52   
   53  Parameters
   54      c(i) 'cost of making product'
-GAMS 24.7.4  r58773 Released Sep 19, 2016 DEX-DEG x86 64bit/MacOS X                                                                                                                                                                    01/14/17 12:42:31 Page 2
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      01/14/17 12:55:31 Page 2
 G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
 C o m p i l a t i o n
 
@@ -114,7 +114,7 @@ C o m p i l a t i o n
  105      MAK     180     0.2
  106      KUK     150     0.3
  107      KOK     150     0.2
-GAMS 24.7.4  r58773 Released Sep 19, 2016 DEX-DEG x86 64bit/MacOS X                                                                                                                                                                    01/14/17 12:42:31 Page 3
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      01/14/17 12:55:31 Page 3
 G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
 C o m p i l a t i o n
 
@@ -158,12 +158,12 @@ C o m p i l a t i o n
  144                  line2Cap..                      sum(j, x('LSEL',j)) =l= 180;
  145                  paperMillCap..          sum(j, x('PAP',j)) =l= 80;
  146          surPlus(k)..        t(k) - sum((i,j), x(i,j)*ProductReq(i,k)) =e= s(k);
- 147                  MASproduction..         sum(j, 2*x('MAS',j)) =l= t('MAT');
- 148          KUSKUVproduction..      sum(j, 2*x('KUS',j) + 2.8*x('KUV',j)) =l= t('KUT');
- 149          KOSKOVproduction..      sum(j, 2*x('KOS',j) + 2.8*x('KOV',j)) =l= t('KOT');
- 150          HSELproduction..        sum(j, 4.8*x('HSEL',j) - 0.8*x('MAS',j)) =l= t('MAK');
- 151          LSELproduction..        sum(j, 4.2*x('LSEL',j) - 0.8*x('KOS',j) - 1.6*x('KOV',j)) =l= t('KOK');
- 152          PAPproduction..         sum(j, x('PAP',j) - 0.8*x('KUS',j) - 1.6*x('KUV',j)) =l=
+ 147                  MASproduction..         sum(j, 2*x('MAS',j)) =e= t('MAT');
+ 148          KUSKUVproduction..      sum(j, 2*x('KUS',j) + 2.8*x('KUV',j)) =e= t('KUT');
+ 149          KOSKOVproduction..      sum(j, 2*x('KOS',j) + 2.8*x('KOV',j)) =e= t('KOT');
+ 150          HSELproduction..        sum(j, 4.8*x('HSEL',j) - 0.8*x('MAS',j)) =e= t('MAK');
+ 151          LSELproduction..        sum(j, 4.2*x('LSEL',j) - 0.8*x('KOS',j) - 1.6*x('KOV',j)) =e= t('KOK');
+ 152          PAPproduction..         sum(j, x('PAP',j) - 0.8*x('KUS',j) - 1.6*x('KUV',j)) =e=
  153                                                                                          t('KUK') + 0.2 * sum(j,x('HSEL',j) + x('LSEL',j));
  154   
  155   
@@ -172,17 +172,17 @@ C o m p i l a t i o n
  158  model aStaticModel /all/ ;
  159   
  160  solve aStaticModel using mip maximizing z;
-GAMS 24.7.4  r58773 Released Sep 19, 2016 DEX-DEG x86 64bit/MacOS X                                                                                                                                                                    01/14/17 12:42:31 Page 4
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      01/14/17 12:55:31 Page 4
 G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
 C o m p i l a t i o n
 
 
  161   
- 162  Display x.L, t.L, s.L;
+ 162  Display x.M, t.L, s.L;
 
 
-COMPILATION TIME     =        0.001 SECONDS      3 MB  24.7.4 r58773 DEX-DEG
-GAMS 24.7.4  r58773 Released Sep 19, 2016 DEX-DEG x86 64bit/MacOS X                                                                                                                                                                    01/14/17 12:42:31 Page 5
+COMPILATION TIME     =        0.002 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      01/14/17 12:55:31 Page 5
 G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
 Equation Listing    SOLVE aStaticModel Using MIP From line 160
 
@@ -235,43 +235,43 @@ surPlus(KUK)..  0.8*x(KUS,EU) + 0.8*x(KUS,IE) + 0.8*x(KUS,PA) + 0.8*x(KUS,KI) + 
      
 surPlus(KOK)..  0.8*x(KOS,EU) + 0.8*x(KOS,IE) + 0.8*x(KOS,PA) + 0.8*x(KOS,KI) + 1.6*x(KOV,EU) + 1.6*x(KOV,IE) + 1.6*x(KOV,PA) + 1.6*x(KOV,KI) - 4.8*x(LSEL,EU) - 4.8*x(LSEL,IE) - 4.8*x(LSEL,PA) - 4.8*x(LSEL,KI) + t(KOK) - s(KOK) =E= 0 ; (LHS = 0)
      
-GAMS 24.7.4  r58773 Released Sep 19, 2016 DEX-DEG x86 64bit/MacOS X                                                                                                                                                                    01/14/17 12:42:31 Page 6
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      01/14/17 12:55:31 Page 6
 G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
 Equation Listing    SOLVE aStaticModel Using MIP From line 160
 
 
----- MASproduction  =L=  
+---- MASproduction  =E=  
 
-MASproduction..  2*x(MAS,EU) + 2*x(MAS,IE) + 2*x(MAS,PA) + 2*x(MAS,KI) - t(MAT) =L= 0 ; (LHS = 0)
+MASproduction..  2*x(MAS,EU) + 2*x(MAS,IE) + 2*x(MAS,PA) + 2*x(MAS,KI) - t(MAT) =E= 0 ; (LHS = 0)
      
 
----- KUSKUVproduction  =L=  
+---- KUSKUVproduction  =E=  
 
-KUSKUVproduction..  2*x(KUS,EU) + 2*x(KUS,IE) + 2*x(KUS,PA) + 2*x(KUS,KI) + 2.8*x(KUV,EU) + 2.8*x(KUV,IE) + 2.8*x(KUV,PA) + 2.8*x(KUV,KI) - t(KUT) =L= 0 ; (LHS = 0)
+KUSKUVproduction..  2*x(KUS,EU) + 2*x(KUS,IE) + 2*x(KUS,PA) + 2*x(KUS,KI) + 2.8*x(KUV,EU) + 2.8*x(KUV,IE) + 2.8*x(KUV,PA) + 2.8*x(KUV,KI) - t(KUT) =E= 0 ; (LHS = 0)
      
 
----- KOSKOVproduction  =L=  
+---- KOSKOVproduction  =E=  
 
-KOSKOVproduction..  2*x(KOS,EU) + 2*x(KOS,IE) + 2*x(KOS,PA) + 2*x(KOS,KI) + 2.8*x(KOV,EU) + 2.8*x(KOV,IE) + 2.8*x(KOV,PA) + 2.8*x(KOV,KI) - t(KOT) =L= 0 ; (LHS = 0)
+KOSKOVproduction..  2*x(KOS,EU) + 2*x(KOS,IE) + 2*x(KOS,PA) + 2*x(KOS,KI) + 2.8*x(KOV,EU) + 2.8*x(KOV,IE) + 2.8*x(KOV,PA) + 2.8*x(KOV,KI) - t(KOT) =E= 0 ; (LHS = 0)
      
 
----- HSELproduction  =L=  
+---- HSELproduction  =E=  
 
-HSELproduction..  - 0.8*x(MAS,EU) - 0.8*x(MAS,IE) - 0.8*x(MAS,PA) - 0.8*x(MAS,KI) + 4.8*x(HSEL,EU) + 4.8*x(HSEL,IE) + 4.8*x(HSEL,PA) + 4.8*x(HSEL,KI) - t(MAK) =L= 0 ; (LHS = 0)
+HSELproduction..  - 0.8*x(MAS,EU) - 0.8*x(MAS,IE) - 0.8*x(MAS,PA) - 0.8*x(MAS,KI) + 4.8*x(HSEL,EU) + 4.8*x(HSEL,IE) + 4.8*x(HSEL,PA) + 4.8*x(HSEL,KI) - t(MAK) =E= 0 ; (LHS = 0)
      
 
----- LSELproduction  =L=  
+---- LSELproduction  =E=  
 
-LSELproduction..  - 0.8*x(KOS,EU) - 0.8*x(KOS,IE) - 0.8*x(KOS,PA) - 0.8*x(KOS,KI) - 1.6*x(KOV,EU) - 1.6*x(KOV,IE) - 1.6*x(KOV,PA) - 1.6*x(KOV,KI) + 4.2*x(LSEL,EU) + 4.2*x(LSEL,IE) + 4.2*x(LSEL,PA) + 4.2*x(LSEL,KI) - t(KOK) =L= 0 ; (LHS = 0)
+LSELproduction..  - 0.8*x(KOS,EU) - 0.8*x(KOS,IE) - 0.8*x(KOS,PA) - 0.8*x(KOS,KI) - 1.6*x(KOV,EU) - 1.6*x(KOV,IE) - 1.6*x(KOV,PA) - 1.6*x(KOV,KI) + 4.2*x(LSEL,EU) + 4.2*x(LSEL,IE) + 4.2*x(LSEL,PA) + 4.2*x(LSEL,KI) - t(KOK) =E= 0 ; (LHS = 0)
      
 
----- PAPproduction  =L=  
+---- PAPproduction  =E=  
 
 PAPproduction..  - 0.8*x(KUS,EU) - 0.8*x(KUS,IE) - 0.8*x(KUS,PA) - 0.8*x(KUS,KI) - 1.6*x(KUV,EU) - 1.6*x(KUV,IE) - 1.6*x(KUV,PA) - 1.6*x(KUV,KI) - 0.2*x(HSEL,EU) - 0.2*x(HSEL,IE) - 0.2*x(HSEL,PA) - 0.2*x(HSEL,KI) - 0.2*x(LSEL,EU) - 0.2*x(LSEL,IE)
      
-      - 0.2*x(LSEL,PA) - 0.2*x(LSEL,KI) + x(PAP,EU) + x(PAP,IE) + x(PAP,PA) + x(PAP,KI) - t(KUK) =L= 0 ; (LHS = 0)
+      - 0.2*x(LSEL,PA) - 0.2*x(LSEL,KI) + x(PAP,EU) + x(PAP,IE) + x(PAP,PA) + x(PAP,KI) - t(KUK) =E= 0 ; (LHS = 0)
      
-GAMS 24.7.4  r58773 Released Sep 19, 2016 DEX-DEG x86 64bit/MacOS X                                                                                                                                                                    01/14/17 12:42:31 Page 7
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      01/14/17 12:55:31 Page 7
 G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
 Column Listing      SOLVE aStaticModel Using MIP From line 160
 
@@ -329,7 +329,7 @@ x(KUS,EU)
         0.8     surPlus(KUK)
         2       KUSKUVproduction
        -0.8     PAPproduction
-GAMS 24.7.4  r58773 Released Sep 19, 2016 DEX-DEG x86 64bit/MacOS X                                                                                                                                                                    01/14/17 12:42:31 Page 8
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      01/14/17 12:55:31 Page 8
 G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
 Column Listing      SOLVE aStaticModel Using MIP From line 160
 
@@ -387,7 +387,7 @@ x(KOS,PA)
       464       profit
         1       sawMillCap
        -2       surPlus(KOT)
-GAMS 24.7.4  r58773 Released Sep 19, 2016 DEX-DEG x86 64bit/MacOS X                                                                                                                                                                    01/14/17 12:42:31 Page 9
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      01/14/17 12:55:31 Page 9
 G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
 Column Listing      SOLVE aStaticModel Using MIP From line 160
 
@@ -445,7 +445,7 @@ x(KUV,KI)
 
 x(KOV,EU)
                 (.LO, .L, .UP, .M = 0, 0, +INF, 0)
-GAMS 24.7.4  r58773 Released Sep 19, 2016 DEX-DEG x86 64bit/MacOS X                                                                                                                                                                   01/14/17 12:42:31 Page 10
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     01/14/17 12:55:31 Page 10
 G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
 Column Listing      SOLVE aStaticModel Using MIP From line 160
 
@@ -503,7 +503,7 @@ x(HSEL,IE)
        -0.2     PAPproduction
 
 x(HSEL,PA)
-GAMS 24.7.4  r58773 Released Sep 19, 2016 DEX-DEG x86 64bit/MacOS X                                                                                                                                                                   01/14/17 12:42:31 Page 11
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     01/14/17 12:55:31 Page 11
 G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
 Column Listing      SOLVE aStaticModel Using MIP From line 160
 
@@ -561,7 +561,7 @@ x(PAP,EU)
                 (.LO, .L, .UP, .M = 0, 0, +INF, 0)
      1704       profit
         1       paperMillCap
-GAMS 24.7.4  r58773 Released Sep 19, 2016 DEX-DEG x86 64bit/MacOS X                                                                                                                                                                   01/14/17 12:42:31 Page 12
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     01/14/17 12:55:31 Page 12
 G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
 Column Listing      SOLVE aStaticModel Using MIP From line 160
 
@@ -619,7 +619,7 @@ t(MAK)
         1       surPlus(MAK)
        -1       HSELproduction
 
-GAMS 24.7.4  r58773 Released Sep 19, 2016 DEX-DEG x86 64bit/MacOS X                                                                                                                                                                   01/14/17 12:42:31 Page 13
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     01/14/17 12:55:31 Page 13
 G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
 Column Listing      SOLVE aStaticModel Using MIP From line 160
 
@@ -671,7 +671,7 @@ s(KOK)
      -150       profit
        -1       surPlus(KOK)
 
-GAMS 24.7.4  r58773 Released Sep 19, 2016 DEX-DEG x86 64bit/MacOS X                                                                                                                                                                   01/14/17 12:42:31 Page 14
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     01/14/17 12:55:31 Page 14
 G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
 Model Statistics    SOLVE aStaticModel Using MIP From line 160
 
@@ -683,11 +683,11 @@ BLOCKS OF VARIABLES           4     SINGLE VARIABLES           45
 NON ZERO ELEMENTS           207
 
 
-GENERATION TIME      =        0.005 SECONDS      4 MB  24.7.4 r58773 DEX-DEG
+GENERATION TIME      =        0.005 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
 
 
-EXECUTION TIME       =        0.005 SECONDS      4 MB  24.7.4 r58773 DEX-DEG
-GAMS 24.7.4  r58773 Released Sep 19, 2016 DEX-DEG x86 64bit/MacOS X                                                                                                                                                                   01/14/17 12:42:31 Page 15
+EXECUTION TIME       =        0.005 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     01/14/17 12:55:31 Page 15
 G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
 Solution Report     SOLVE aStaticModel Using MIP From line 160
 
@@ -699,27 +699,22 @@ Solution Report     SOLVE aStaticModel Using MIP From line 160
      SOLVER  CPLEX               FROM LINE  160
 
 **** SOLVER STATUS     1 Normal Completion         
-**** MODEL STATUS      3 Unbounded                 
+**** MODEL STATUS      1 Optimal                   
 **** OBJECTIVE VALUE            85460.0000
 
- RESOURCE USAGE, LIMIT          0.006       300.000
- ITERATION COUNT, LIMIT         0     999999999
+ RESOURCE USAGE, LIMIT          0.005       300.000
+ ITERATION COUNT, LIMIT         6     999999999
 
-IBM ILOG CPLEX   24.7.4 r58773 Released Sep 19, 2016 DEG x86 64bit/MacOS X    
+IBM ILOG CPLEX   24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
 Cplex 12.6.3.0
 
 Space for names approximately 0.00 Mb
 Use option 'names no' to turn use of names off
-LP status(4): unbounded or infeasible
-Cplex Time: 0.00sec (det. 0.01 ticks)
-Presolve found the problem infeasible or unbounded.
-Rerunning with presolve turned off and solving with LPMETHOD=0
-LP status(2): unbounded
-Cplex Time: 0.00sec (det. 0.01 ticks)
-Model has an unbounded ray.
+LP status(1): optimal
+Cplex Time: 0.00sec (det. 0.05 ticks)
+Optimal solution found.
+Objective :       85460.000000
 
-**** ERRORS/WARNINGS IN VARIABLE t(MAK)
-     1 error(s): Unbounded variable
 
                            LOWER          LEVEL          UPPER         MARGINAL
 
@@ -745,26 +740,21 @@ MAT          .              .              .          -190.0000
 KUT          .              .              .          -150.0000      
 KOT          .              .              .          -120.0000      
 MAK          .              .              .          -180.0000      
-GAMS 24.7.4  r58773 Released Sep 19, 2016 DEX-DEG x86 64bit/MacOS X                                                                                                                                                                   01/14/17 12:42:31 Page 16
+KUK          .              .              .          -150.0000      
+KOK          .              .              .          -150.0000      
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     01/14/17 12:55:31 Page 16
 G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
 Solution Report     SOLVE aStaticModel Using MIP From line 160
 
 
-     EQU surPlus  
-
-           LOWER          LEVEL          UPPER         MARGINAL
-
-KUK          .              .              .          -150.0000      
-KOK          .              .              .          -150.0000      
-
                            LOWER          LEVEL          UPPER         MARGINAL
 
----- EQU MASproduc~        -INF             .              .              .          
----- EQU KUSKUVpro~        -INF             .              .              .          
----- EQU KOSKOVpro~        -INF             .              .              .          
----- EQU HSELprodu~        -INF             .              .              .          
----- EQU LSELprodu~        -INF             .              .              .          
----- EQU PAPproduc~        -INF             .              .              .          
+---- EQU MASproduc~          .              .              .          -189.0000      
+---- EQU KUSKUVpro~          .              .              .          -149.5000      
+---- EQU KOSKOVpro~          .              .              .          -117.0000      
+---- EQU HSELprodu~          .              .              .          -179.8000      
+---- EQU LSELprodu~          .              .              .          -149.8000      
+---- EQU PAPproduc~          .              .              .         -1854.0000      
 
   MASproduction  
   KUSKUVproduction  
@@ -783,27 +773,34 @@ KOK          .              .              .          -150.0000
 
                LOWER          LEVEL          UPPER         MARGINAL
 
-MAS .EU          .              .            +INF         -782.0000      
-MAS .IE          .              .            +INF         -788.0000      
-MAS .PA          .              .            +INF         -790.0000      
-MAS .KI          .              .            +INF         -793.0000      
-KUS .EU          .              .            +INF         -676.0000      
-KUS .IE          .              .            +INF         -682.0000      
-KUS .PA          .              .            +INF         -684.0000      
-KUS .KI          .              .            +INF         -687.0000      
-KOS .EU          .              .            +INF         -576.0000      
-KOS .IE          .              .            +INF         -582.0000      
-KOS .PA          .              .            +INF         -584.0000      
-KOS .KI          .              .            +INF         -587.0000      
-KUV .EU          .              .            +INF        -2676.0000      
-KUV .IE          .              .            +INF        -2682.0000      
-KUV .PA          .              .            +INF        -2684.0000      
-KUV .KI          .              .            +INF        -2687.0000      
-KOV .EU          .              .            +INF        -2692.0000      
-KOV .IE          .              .            +INF        -2698.0000      
-KOV .PA          .              .            +INF        -2700.0000      
-KOV .KI          .              .            +INF        -2703.0000      
-GAMS 24.7.4  r58773 Released Sep 19, 2016 DEX-DEG x86 64bit/MacOS X                                                                                                                                                                   01/14/17 12:42:31 Page 17
+MAS .EU          .              .            +INF         -547.8400      
+MAS .IE          .              .            +INF         -553.8400      
+MAS .PA          .              .            +INF         -555.8400      
+MAS .KI          .              .            +INF         -558.8400      
+KUS .EU          .              .            +INF        -1860.2000      
+KUS .IE          .              .            +INF        -1866.2000      
+KUS .PA          .              .            +INF        -1868.2000      
+KUS .KI          .              .            +INF        -1871.2000      
+KOS .EU          .              .            +INF         -461.8400      
+KOS .IE          .              .            +INF         -467.8400      
+KOS .PA          .              .            +INF         -469.8400      
+KOS .KI          .              .            +INF         -472.8400      
+KUV .EU          .              .            +INF        -5223.8000      
+KUV .IE          .              .            +INF        -5229.8000      
+KUV .PA          .              .            +INF        -5231.8000      
+KUV .KI          .              .            +INF        -5234.8000      
+KOV .EU          .              .            +INF        -2604.0800      
+KOV .IE          .              .            +INF        -2610.0800      
+KOV .PA          .              .            +INF        -2612.0800      
+KOV .KI          .              .            +INF        -2615.0800      
+HSEL.EU          .              .            +INF        -1193.7600      
+HSEL.IE          .              .            +INF        -1195.7600      
+HSEL.PA          .              .            +INF        -1196.7600      
+HSEL.KI          .              .            +INF        -1197.7600      
+LSEL.EU          .              .            +INF        -1264.6400      
+LSEL.IE          .              .            +INF        -1263.6400      
+LSEL.PA          .              .            +INF        -1266.6400      
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     01/14/17 12:55:31 Page 17
 G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
 Solution Report     SOLVE aStaticModel Using MIP From line 160
 
@@ -812,29 +809,22 @@ Solution Report     SOLVE aStaticModel Using MIP From line 160
 
                LOWER          LEVEL          UPPER         MARGINAL
 
-HSEL.EU          .              .            +INF        -1686.0000      
-HSEL.IE          .              .            +INF        -1688.0000      
-HSEL.PA          .              .            +INF        -1689.0000      
-HSEL.KI          .              .            +INF        -1690.0000      
-LSEL.EU          .              .            +INF        -1523.0000      
-LSEL.IE          .              .            +INF        -1522.0000      
-LSEL.PA          .              .            +INF        -1525.0000      
-LSEL.KI          .              .            +INF        -1527.0000      
-PAP .EU          .              .            +INF        -1854.0000      
-PAP .IE          .              .            +INF        -1860.0000      
-PAP .PA          .              .            +INF        -1862.0000      
-PAP .KI          .              .            +INF        -1865.0000      
+LSEL.KI          .              .            +INF        -1268.6400      
+PAP .EU          .              .            +INF             .          
+PAP .IE          .              .            +INF           -6.0000      
+PAP .PA          .              .            +INF           -8.0000      
+PAP .KI          .              .            +INF          -11.0000      
 
 ---- VAR t  Timber assortment for timber k
 
            LOWER          LEVEL          UPPER         MARGINAL
 
-MAT          .              .            +INF          189.0000  NOPT
-KUT          .              .            +INF          149.5000  NOPT
-KOT          .              .            +INF          117.0000  NOPT
-MAK          .              .            +INF          179.8000 UNBND
-KUK          .              .            +INF          149.7000  NOPT
-KOK          .              .            +INF          149.8000  NOPT
+MAT          .              .            +INF             .          
+KUT          .              .            +INF             .          
+KOT          .              .            +INF             .          
+MAK          .              .            +INF             .          
+KUK          .              .            +INF        -1704.3000      
+KOK          .              .            +INF             .          
 
 ---- VAR s  Material surplus timber k
 
@@ -848,17 +838,26 @@ KUK          .              .            +INF             .
 KOK          .              .            +INF             .          
 
 
-**** REPORT SUMMARY :        5     NONOPT ( NOPT)
+**** REPORT SUMMARY :        0     NONOPT
                              0 INFEASIBLE
-                             1  UNBOUNDED (UNBND)
-GAMS 24.7.4  r58773 Released Sep 19, 2016 DEX-DEG x86 64bit/MacOS X                                                                                                                                                                   01/14/17 12:42:31 Page 18
+                             0  UNBOUNDED
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     01/14/17 12:55:31 Page 18
 G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
 E x e c u t i o n
 
 
-----    162 VARIABLE x.L  Product i for region j
+----    162 VARIABLE x.M  Product i for region j
 
-                      ( ALL       0.000 )
+              EU          IE          PA          KI
+
+MAS     -547.840    -553.840    -555.840    -558.840
+KUS    -1860.200   -1866.200   -1868.200   -1871.200
+KOS     -461.840    -467.840    -469.840    -472.840
+KUV    -5223.800   -5229.800   -5231.800   -5234.800
+KOV    -2604.080   -2610.080   -2612.080   -2615.080
+HSEL   -1193.760   -1195.760   -1196.760   -1197.760
+LSEL   -1264.640   -1263.640   -1266.640   -1268.640
+PAP                   -6.000      -8.000     -11.000
 
 
 ----    162 VARIABLE t.L  Timber assortment for timber k
@@ -872,7 +871,7 @@ E x e c u t i o n
 
 
 
-EXECUTION TIME       =        0.001 SECONDS      3 MB  24.7.4 r58773 DEX-DEG
+EXECUTION TIME       =        0.002 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
 
 
 USER: Course License Fall 2016                       A160811:0602AO-GEN
@@ -882,5 +881,5 @@ USER: Course License Fall 2016                       A160811:0602AO-GEN
 
 **** FILE SUMMARY
 
-Input      /Users/Gugli/Dropbox/#DTU/1Kandidat/1.Semester/42112MatModel/GAMS/Projekt/MathProg/ExcerciseA.gms
-Output     /Users/Gugli/Dropbox/#DTU/1Kandidat/1.Semester/42112MatModel/GAMS/Projekt/MathProg/ExcerciseA.lst
+Input      /home/mads/Dropbox/DTU/MathProg/MathProg/ExcerciseA.gms
+Output     /home/mads/Dropbox/DTU/MathProg/MathProg/ExcerciseA.lst

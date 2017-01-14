@@ -111,7 +111,8 @@ variable
     z 'max profit'
     ;
 positive variables
-    x(i,j)  'Product i for region j'
+    x(i)     'Produced of product i'
+    sol(i,j) 'sold product i'
     t(k)    'Timber assortment for timber k'
     s(k)    'Material surplus timber k'
     ; 
@@ -132,24 +133,24 @@ equations
         PAPproduction	''
         ;
 
-		profit .. 			z =e= sum((i,j), ((demand(i,j,'Gamma')-demand(i,j,'Delta')*x(i,j)) - c(i)*x(i,j))) -
+		profit .. 			z =e= sum((i,j), ((demand(i,j,'Gamma')-demand(i,j,'Delta')*sol(i,j)) - c(i)*x(i))) -
                                   sum(k, (cost(k,'Alpha')+cost(k,'Beta')*t(k))) +
-                                  sum((fp,j), 0.2*x(fp,j)*40) +
+                                  sum((fp,j), 0.2*x(fp)*40) +
                                   sum(k,s(k)*cost(k,'Alpha')) 
                                   ;
 							
-		sawMillCap.. 		sum((sm,j), x(sm,j)) =l= 200; 
- 		plywoodMillCap.. 	sum((pm,j), x(pm,j)) =l= 90;
- 		line1Cap..			sum(j, x('HSEL',j)) =l= 220;
- 		line2Cap..			sum(j, x('LSEL',j)) =l= 180;
- 		paperMillCap..		sum(j, x('PAP',j)) =l= 80;
-        surPlus(k)..        t(k) - sum((i,j), x(i,j)*ProductReq(i,k)) =e= s(k);
- 		MASproduction..		sum(j, 2*x('MAS',j)) =l= t('MAT');
-        KUSKUVproduction..	sum(j, 2*x('KUS',j) + 2.8*x('KUV',j)) =l= t('KUT');
-        KOSKOVproduction..	sum(j, 2*x('KOS',j) + 2.8*x('KOV',j)) =l= t('KOT');
-        HSELproduction..	sum(j, 4.8*x('HSEL',j) - 0.8*x('MAS',j)) =l= t('MAK');	
-        LSELproduction.. 	sum(j, 4.2*x('LSEL',j) - 0.8*x('KOS',j) - 1.6*x('KOV',j)) =l= t('KOK');
-        PAPproduction..		sum(j, x('PAP',j) - 0.8*x('KUS',j) - 1.6*x('KUV',j)) =l= 
+		sawMillCap.. 		sum((sm,j), x(sm) =l= 200; 
+ 		plywoodMillCap.. 	sum((pm,j), x(pm) =l= 90;
+ 		line1Cap..			sum(j, x('HSEL') =l= 220;
+ 		line2Cap..			sum(j, x('LSEL') =l= 180;
+ 		paperMillCap..		sum(j, x('PAP') =l= 80;
+        surPlus(k)..        t(k) - sum((i,j), x(i)*ProductReq(i,k)) =e= s(k);
+ 		MASproduction..		sum(j, 2*x('MAS') =e= t('MAT');
+        KUSKUVproduction..	sum(j, 2*x('KUS') + 2.8*x('KUV',j)) =e= t('KUT');
+        KOSKOVproduction..	sum(j, 2*x('KOS') + 2.8*x('KOV',j)) =e= t('KOT');
+        HSELproduction..	sum(j, 4.8*x('HSEL') - 0.8*x('MAS') =e= t('MAK');	
+        LSELproduction.. 	sum(j, 4.2*x('LSEL') - 0.8*x('KOS') - 1.6*x('KOV',j)) =e= t('KOK');
+        PAPproduction..		sum(j, x('PAP',j) - 0.8*x('KUS') - 1.6*x('KUV',j)) =e= 
         										t('KUK') + 0.2 * sum(j,x('HSEL',j) + x('LSEL',j));
 
 
@@ -159,4 +160,4 @@ model aStaticModel /all/ ;
 
 solve aStaticModel using mip maximizing z;
 
-Display x.L, t.L, s.L;
+Display x.M, t.L, s.L;
