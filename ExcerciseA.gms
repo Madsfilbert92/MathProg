@@ -98,56 +98,54 @@ AtPort('Marianne','14','SE')=1; AtPort('Marianne','21','VL')=1;
 
 
 variable
-         z 'cost'
-         rebate  'HK rebate';
-
-positive variables
-         x(j,k)   'how much oil does ship j have in reserve at day k (at the end of the day)'
-         y(i,j,k) 'how much oil ship j buys in port i at day k'
-         w(j,k)   'how much oil does ship j use on day k';// could've been a parameter
-
-binary variable
-         u(i,j,k) 'denotes whether or not ship j buys oil in port i'
-         h       'hong kong variable' ;
-
-equations
-         cost 'objective function'
-         maxcap 'maximum capacity of each ship'
-         portoil 'every ship may not leave port without this amout of fuel'
-         minbuy  'minimum purchase of 200 tonnes'
-         forcebuy 'only buy oil, if u(i,j,k) <> 0'
-         balance  'fuel balance'
-         fuel    'fuel consumption'
-         hongkong 'hong kong oil purchase'
-         r       'rebate constraints'
-         con     'rebate constraints'
+         z 'max profit'
          ;
 
-         cost .. z =e= sum((i,j,k),portprices(k,i)*y(i,j,k))
-                 - rebate;
-         maxcap(j,k) .. x(j,k) =l= capacity(j);
-         portoil(j,k)$(sum(i, AtPort(j,k,i))=1) .. x(j,k) =g=  600;
-         minbuy(i,j,k) .. u(i,j,k)*200 =l= y(i,j,k);
-         forcebuy(i,j,k) .. y(i,j,k) =l= u(i,j,k)*capacity(j);
-         balance(j,k)$(ord(k) >= 3) .. x(j,k-1) + sum(i,y(i,j,k))-w(j,k)=e= x(j,k);
-         fuel(j,k) .. power(shipspeed(k,j)/25,3)*200*0.96 =e= w(j,k);
-         hongkong ..  sum((j,k), y('HK',j,k)) =g= h*500 ;
-         r ..    rebate =e= sum((j,k),portprices(k,'HK')*0.35*y('HK',j,k));
-         con .. rebate =l= h*1000000000;
+positive variables
+         x(i,j)   	'Product i for region j'
+         t(i) 		'Timer assortment i'
+         s(i)		'Material surplus i'
+         ;
 
-// part 3. cost 8.000.000, cost savings: 134.000*52 = 6.986.800
-// net loss of 1.013.200
+equations
+        profit 			'objective function'
+        sawMillCap 		''
+        plywoodMillCap 	''
+        line1Cap		''
+        line2Cap		''
+        paperMillCap	''
+        surPlus(j)		''
+        MASproduction	''
+        KUSKUVproduction	''
+        KOSKOVproduction	''
+        HSELproduction	''
+        LSELproduction	''
+        PAPproduction	''
+        ;
+
+		profit .. 			z =e= sum((i,j), x(i,j));
+							//OBS skal afhænge af subsets istedet for i,j
+		sawMillCap.. 		sum((i,j), x(i,j)) =l= 200000; 
+ 		plywoodMillCap.. 	sum((i,j), x(i,j)) =l= 90000;
+ 		line1Cap..			sum((i,j), x(i,j)) =l= 220000;
+ 		line2Cap..			sum((i,j), x(i,j)) =l= 180000;
+ 		paperMillCap..		sum((i,j), x(i,j)) =l= 80000;
+ 		surPlus(j)..		sum(i, t(i)-x(i,j)*u(i,j)) =e= s(i);
+ 		MASproduction..		sum(j, 2*x('1',j)) =l= t('1');
+        KUSKUVproduction..	sum(j, 2*x('2',j) + 2.8*x('4',j)) =l= t('2');
+        KOSKOVproduction..	sum(j, 2*x('3',j) + 2.8*x('5',j)) =l= t('3');
+        HSELproduction..	sum(j, 4.8*x('6',j) - 0.8*x('1',j)) =l= t('4');	
+        LSELproduction.. 	sum(j, 4.2*x('7',j) - 0.8*x('3',j) - 1.6*x('5',j)) =l= t('6');
+        PAPproduction..		sum(j, x('8',j) - 0.8*x('2',j) - 1.6*x('4',j)) =l= 
+        										t('5') + 0.2 * sum(j,x('6',j) + x('7',j));
 
 
-model shipbunkering /all/ ;
-
-x.FX(j,k)$(ord(k) = 2) = startfuel(j);
-x.LO(j,'21') = 800;
-u.UP(i,j,k) = AtPort(j,k,i);
 
 
-solve shipbunkering using mip minimizing z;
+model aStaticModel /all/ ;
+
+solve aStaticModel using mip maximizing z;
 
 
-display x.L , y.L, u.L;
+display x.L , t.L, s.L;
 
