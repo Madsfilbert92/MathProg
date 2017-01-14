@@ -7,42 +7,61 @@ option limrow=100; // limit number of rows in
 option limcol=100; // limit number of columns
 //-----------------------------------------------------------------
 SETS
-        Products   'Products'            / MAS, KUS, KOS, KUV, KOV, HSEL, LSEL, PAP/
+        Material   'All Materials'     / MAS, KUS, KOS, KUV, KOV, HSEL, LSEL, PAP,MAT, KUT, KOT, MAK, KUK, KOK, FUEL/
+        Products(Material)   'Products'  / MAS, KUS, KOS, KUV, KOV, HSEL, LSEL, PAP/
         Regions   'Regions'            /EU, IE, PA, KI/
-        Timber    'Types of timber' /MAT, KUT, KOT, MAK, KUK, KOK/
-        SawMillProducts(Products) 'Products produced at the sawmill' /MAS, KUS, KOS/
-        PlywoodMillProducts(Products) 'Products prodcued at plywoodmill' /KUV, KOV/
-        FuelProducts(Products) 'Products producing fuel' /MAS, KUS, KOS, KUV, KOV/
-        PulpMillProducts(Products) 'Products produced at pulpmill' /HSEL, LSEL/;
+        ProductionMaterials(Material) 'Materials used for other products' /MAT,KUT,KOT,MAK,KUK,KOK,HSEL,LSEL/
+        Timber(Material)    'Types of timber' /MAT, KUT, KOT, MAK, KUK, KOK/
+        SawMillProducts(Material) 'Products produced at the sawmill' /MAS, KUS, KOS/
+        PlywoodMillProducts(Material) 'Products prodcued at plywoodmill' /KUV, KOV/
+        FuelProducts(Material) 'Products producing fuel' /MAS, KUS, KOS, KUV, KOV/
+        PulpMillProducts(Material) 'Products produced at pulpmill' /HSEL, LSEL/;
         ;
 
 ALIAS(Products,i);
 ALIAS(Regions,j);
 ALIAS(Timber,k);
+ALIAS(ProductionMaterials,ProM);
 ALIAS(SawMillProducts,sm);
 ALIAS(PlywoodMillProducts, pm);
 ALIAS(FuelProducts, fp);
 ALIAS(PulpMillProducts, pmp);
 
-Table ProductReq(i,k) 'Amount of timber needed for each product'
-        MAT  KUT  KOT  MAK  KUK  KOK  FUEL HSEL  LSEL
+Table ProductReq(i,ProM) 'Amount of timber needed for each product'
+        MAT  KUT  KOT  MAK  KUK  KOK HSEL LSEL
     
-    MAS 2.0           -0.8
+    MAS 2.0           -0.8           
     
-    KUS
+    KUS      2.0            -0.8     
     
-    KOS
+    KOS           2.0           -0.8 
     
-    KUV
+    KUV      2.8            -1.6     
     
-    KOV
+    KOV           2.8           -1.6 
     
-    HSEL
+    HSEL               4.8 
     
-    LSEL
+    LSEL                         4.8
     
-    PAP;
-        
+    PAP                     1.0       0.2  0.2;           
+
+Parameters
+    fuel(sm) 'fuel generated when producing products' /-0.2/
+
+    c(i) 'cost of making product'
+    /MAS 550,
+     KUS 500,
+     KOS 450,
+     KUV 2500,
+     KOV 2600, 
+     HSEL 820,
+     LSEL 800,
+     PAP 1700
+     /;
+
+
+
 equations
         profit 			'objective function'
         sawMillCap 		''
