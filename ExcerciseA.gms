@@ -41,6 +41,45 @@ Table ProductReq(i,k) 'Amount of timber needed for each product'
     
     LSEL
     
-    PAP
+    PAP;
+        
+equations
+        profit 			'objective function'
+        sawMillCap 		''
+        plywoodMillCap 	''
+        line1Cap		''
+        line2Cap		''
+        paperMillCap	''
+        surPlus(j)		''
+        MASproduction	''
+        KUSKUVproduction	''
+        KOSKOVproduction	''
+        HSELproduction	''
+        LSELproduction	''
+        PAPproduction	''
+        ;
+
+		profit .. 			z =e= sum((i,j), x(i,j));
+							//OBS skal afhænge af subsets istedet for i,j
+		sawMillCap.. 		sum((i,j), x(i,j)) =l= 200000; 
+ 		plywoodMillCap.. 	sum((i,j), x(i,j)) =l= 90000;
+ 		line1Cap..			sum((i,j), x(i,j)) =l= 220000;
+ 		line2Cap..			sum((i,j), x(i,j)) =l= 180000;
+ 		paperMillCap..		sum((i,j), x(i,j)) =l= 80000;
+ 		surPlus(j)..		sum(i, t(i)-x(i,j)*u(i,j)) =e= s(i);
+ 		MASproduction..		sum(j, 2*x('1',j)) =l= t('1');
+        KUSKUVproduction..	sum(j, 2*x('2',j) + 2.8*x('4',j)) =l= t('2');
+        KOSKOVproduction..	sum(j, 2*x('3',j) + 2.8*x('5',j)) =l= t('3');
+        HSELproduction..	sum(j, 4.8*x('6',j) - 0.8*x('1',j)) =l= t('4');	
+        LSELproduction.. 	sum(j, 4.2*x('7',j) - 0.8*x('3',j) - 1.6*x('5',j)) =l= t('6');
+        PAPproduction..		sum(j, x('8',j) - 0.8*x('2',j) - 1.6*x('4',j)) =l= 
+        										t('5') + 0.2 * sum(j,x('6',j) + x('7',j));
+
+
+
+
+model aStaticModel /all/ ;
+
+solve aStaticModel using mip maximizing z;
 
 
