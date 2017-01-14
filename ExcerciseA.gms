@@ -144,15 +144,15 @@ equations
  		plywoodMillCap.. 	sum((pm,j), x(pm,j)) =l= 90;
  		line1Cap..			sum(j, x('HSEL',j)) =l= 220;
  		line2Cap..			sum(j, x('LSEL',j)) =l= 180;
- 		paperMillCap..		sum(j, x('8',j)) =l= 80;
+ 		paperMillCap..		sum(j, x('PAP',j)) =l= 80;
         surPlus(k)..        t(k) - sum((i,j), x(i,j)*ProductReq(i,k)) =e= s(i);
- 		MASproduction..		sum(j, 2*x('1',j)) =l= t('1');
-        KUSKUVproduction..	sum(j, 2*x('2',j) + 2.8*x('4',j)) =l= t('2');
-        KOSKOVproduction..	sum(j, 2*x('3',j) + 2.8*x('5',j)) =l= t('3');
-        HSELproduction..	sum(j, 4.8*x('6',j) - 0.8*x('1',j)) =l= t('4');	
-        LSELproduction.. 	sum(j, 4.2*x('7',j) - 0.8*x('3',j) - 1.6*x('5',j)) =l= t('6');
-        PAPproduction..		sum(j, x('8',j) - 0.8*x('2',j) - 1.6*x('4',j)) =l= 
-        										t('5') + 0.2 * sum(j,x('6',j) + x('7',j));
+ 		MASproduction..		sum(j, 2*x('MAS',j)) =l= t('MAT');
+        KUSKUVproduction..	sum(j, 2*x('KUS',j) + 2.8*x('KUV',j)) =l= t('KUT');
+        KOSKOVproduction..	sum(j, 2*x('KOS',j) + 2.8*x('KOV',j)) =l= t('KOT');
+        HSELproduction..	sum(j, 4.8*x('HSEL',j) - 0.8*x('MAS',j)) =l= t('MAK');	
+        LSELproduction.. 	sum(j, 4.2*x('LSEL',j) - 0.8*x('KOS',j) - 1.6*x('KOV',j)) =l= t('KOK');
+        PAPproduction..		sum(j, x('PAP',j) - 0.8*x('KUS',j) - 1.6*x('KUV',j)) =l= 
+        										t('KUK') + 0.2 * sum(j,x('HSEL',j) + x('LSEL',j));
 
 
 
