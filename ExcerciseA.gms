@@ -42,6 +42,15 @@ Table ProductReq(i,k) 'Amount of timber needed for each product'
     LSEL
     
     PAP;
+
+variable
+    z 'max profit'
+    ;
+positive variables
+    x(i,j)  'Product i for region j'
+    t(k)    'Timber assortment for timber k'
+    s(k)    'Material surplus timber k'
+    ; 
         
 equations
         profit 			'objective function'
@@ -60,12 +69,12 @@ equations
         ;
 
 		profit .. 			z =e= sum((i,j), x(i,j));
-							//OBS skal afhænge af subsets istedet for i,j
-		sawMillCap.. 		sum((i,j), x(i,j)) =l= 200000; 
- 		plywoodMillCap.. 	sum((i,j), x(i,j)) =l= 90000;
- 		line1Cap..			sum((i,j), x(i,j)) =l= 220000;
- 		line2Cap..			sum((i,j), x(i,j)) =l= 180000;
- 		paperMillCap..		sum((i,j), x(i,j)) =l= 80000;
+							
+		sawMillCap.. 		sum((sm,j), x(sm,j)) =l= 200000; 
+ 		plywoodMillCap.. 	sum((pm,j), x(pm,j)) =l= 90000;
+ 		line1Cap..			sum((pmp,j), x('HSEL',j)) =l= 220000;
+ 		line2Cap..			sum((pmp,j), x('LSEL',j)) =l= 180000;
+ 		paperMillCap..		sum((i,j), x('8',j)) =l= 80000;
  		surPlus(j)..		sum(i, t(i)-x(i,j)*u(i,j)) =e= s(i);
  		MASproduction..		sum(j, 2*x('1',j)) =l= t('1');
         KUSKUVproduction..	sum(j, 2*x('2',j) + 2.8*x('4',j)) =l= t('2');
