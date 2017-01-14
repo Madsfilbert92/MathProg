@@ -11,11 +11,11 @@ SETS
         Products(Material)   'Products'  / MAS, KUS, KOS, KUV, KOV, HSEL, LSEL, PAP/
         Regions   'Regions'            /EU, IE, PA, KI/
         ProductionMaterials(Material) 'Materials used for other products' /MAT,KUT,KOT,MAK,KUK,KOK,HSEL,LSEL/
-        Timber(ProductionMaterial)    'Types of timber' /MAT, KUT, KOT, MAK, KUK, KOK/
-        SawMillProducts(Material) 'Products produced at the sawmill' /MAS, KUS, KOS/
-        PlywoodMillProducts(Material) 'Products prodcued at plywoodmill' /KUV, KOV/
-        FuelProducts(Material) 'Products producing fuel' /MAS, KUS, KOS, KUV, KOV/
-        PulpMillProducts(Material) 'Products produced at pulpmill' /HSEL, LSEL/
+        Timber(ProductionMaterials)    'Types of timber' /MAT, KUT, KOT, MAK, KUK, KOK/
+        SawMillProducts(Products) 'Products produced at the sawmill' /MAS, KUS, KOS/
+        PlywoodMillProducts(Products) 'Products prodcued at plywoodmill' /KUV, KOV/
+        FuelProducts(Products) 'Products producing fuel' /MAS, KUS, KOS, KUV, KOV/
+        PulpMillProducts(Products) 'Products produced at pulpmill' /HSEL, LSEL/
         DemandParameters 'The demand parameters table 4' /Gamma, Delta/
         CostParameters 'The cost parameters table 1' /Alpha, Beta/
         ;
@@ -51,8 +51,6 @@ Table ProductReq(i,ProM) 'Amount of timber needed for each product'
     PAP                     1.0       0.2  0.2;           
 
 Parameters
-    fuel(sm) 'fuel generated when producing products' /-0.2/
-
     c(i) 'cost of making product'
     /MAS 550,
      KUS 500,
@@ -134,10 +132,10 @@ equations
         PAPproduction	''
         ;
 
-		profit .. 			z =e= sum((i,j), x(i,j)*((demand(i,j,'Gamma')-demand(i,j,'Delta')*x(i,j)) - c(i))) -
-                                  sum(k, t(k)*(cost(k,'Alpha')+cost(k,'Beta')*t(k))) +
+		profit .. 			z =e= sum((i,j), ((demand(i,j,'Gamma')-demand(i,j,'Delta')*x(i,j)) - c(i)*x(i,j))) -
+                                  sum(k, (cost(k,'Alpha')+cost(k,'Beta')*t(k))) +
                                   sum((fp,j), 0.2*x(fp,j)*40) +
-                                  sum(k,s(k)*a(k)) 
+                                  sum(k,s(k)*cost(k,'Alpha')) 
                                   ;
 							
 		sawMillCap.. 		sum((sm,j), x(sm,j)) =l= 200; 
@@ -145,7 +143,7 @@ equations
  		line1Cap..			sum(j, x('HSEL',j)) =l= 220;
  		line2Cap..			sum(j, x('LSEL',j)) =l= 180;
  		paperMillCap..		sum(j, x('PAP',j)) =l= 80;
-        surPlus(k)..        t(k) - sum((i,j), x(i,j)*ProductReq(i,k)) =e= s(i);
+        surPlus(k)..        t(k) - sum((i,j), x(i,j)*ProductReq(i,k)) =e= s(k);
  		MASproduction..		sum(j, 2*x('MAS',j)) =l= t('MAT');
         KUSKUVproduction..	sum(j, 2*x('KUS',j) + 2.8*x('KUV',j)) =l= t('KUT');
         KOSKOVproduction..	sum(j, 2*x('KOS',j) + 2.8*x('KOV',j)) =l= t('KOT');
@@ -161,4 +159,4 @@ model aStaticModel /all/ ;
 
 solve aStaticModel using mip maximizing z;
 
-
+Display x.L, t.L, s.L;

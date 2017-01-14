@@ -1,0 +1,886 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 DEX-DEG x86 64bit/MacOS X                                                                                                                                                                    01/14/17 12:42:31 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   2  option iterlim=999999999;// avoid limit on iterations
+   3  option reslim=300; // timelimit for solver in
+   4  option optcr=0.0; // gap tolerance
+   5  option solprint=ON; // include solution print in
+   6  option limrow=100; // limit number of rows in
+   7  option limcol=100; // limit number of columns
+   8  //-----------------------------------------------------------------
+   9  SETS
+  10          Material   'All Materials'     / MAS, KUS, KOS, KUV, KOV, HSEL, LSEL, PAP,MAT, KUT, KOT, MAK, KUK, KOK, FUEL/
+  11          Products(Material)   'Products'  / MAS, KUS, KOS, KUV, KOV, HSEL, LSEL, PAP/
+  12          Regions   'Regions'            /EU, IE, PA, KI/
+  13          ProductionMaterials(Material) 'Materials used for other products' /MAT,KUT,KOT,MAK,KUK,KOK,HSEL,LSEL/
+  14          Timber(ProductionMaterials)    'Types of timber' /MAT, KUT, KOT, MAK, KUK, KOK/
+  15          SawMillProducts(Products) 'Products produced at the sawmill' /MAS, KUS, KOS/
+  16          PlywoodMillProducts(Products) 'Products prodcued at plywoodmill' /KUV, KOV/
+  17          FuelProducts(Products) 'Products producing fuel' /MAS, KUS, KOS, KUV, KOV/
+  18          PulpMillProducts(Products) 'Products produced at pulpmill' /HSEL, LSEL/
+  19          DemandParameters 'The demand parameters table 4' /Gamma, Delta/
+  20          CostParameters 'The cost parameters table 1' /Alpha, Beta/
+  21          ;
+  22   
+  23  ALIAS(Products,i);
+  24  ALIAS(Regions,j);
+  25  ALIAS(Timber,k);
+  26  ALIAS(ProductionMaterials,ProM);
+  27  ALIAS(SawMillProducts,sm);
+  28  ALIAS(PlywoodMillProducts, pm);
+  29  ALIAS(FuelProducts, fp);
+  30  ALIAS(PulpMillProducts, pmp);
+  31  ALIAS(DemandParameters, dp);
+  32  ALIAS(CostParameters, cp);
+  33   
+  34  Table ProductReq(i,ProM) 'Amount of timber needed for each product'
+  35          MAT  KUT  KOT  MAK  KUK  KOK HSEL LSEL
+  36   
+  37      MAS 2.0           -0.8
+  38   
+  39      KUS      2.0            -0.8
+  40   
+  41      KOS           2.0           -0.8
+  42   
+  43      KUV      2.8            -1.6
+  44   
+  45      KOV           2.8           -1.6
+  46   
+  47      HSEL               4.8
+  48   
+  49      LSEL                         4.8
+  50   
+  51      PAP                     1.0       0.2  0.2;
+  52   
+  53  Parameters
+  54      c(i) 'cost of making product'
+GAMS 24.7.4  r58773 Released Sep 19, 2016 DEX-DEG x86 64bit/MacOS X                                                                                                                                                                    01/14/17 12:42:31 Page 2
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+  55      /MAS 550,
+  56       KUS 500,
+  57       KOS 450,
+  58       KUV 2500,
+  59       KOV 2600,
+  60       HSEL 820,
+  61       LSEL 800,
+  62       PAP 1700
+  63       /;
+  64   
+  65  Table demand(i,j,dp) 'The demand parameters of the products for different markets'
+  66              Gamma   Delta
+  67      MAS.EU  1600    4.0
+  68      MAS.IE  1300    10.0
+  69      MAS.PA  1400    12.0
+  70      MAS.KI  1500    15.0
+  71      KUS.EU  1400    4.0
+  72      KUS.IE  1200    10.0
+  73      KUS.PA  1300    12.0
+  74      KUS.KI  1400    15.0
+  75      KOS.EU  1300    14.0
+  76      KOS.IE  1400    20.0
+  77      KOS.PA  1500    22.0
+  78      KOS.KI  1600    25.0
+  79      KUV.EU  4400    4.0
+  80      KUV.IE  3800    10.0
+  81      KUV.PA  3600    12.0
+  82      KUV.KI  3500    15.0
+  83      KOV.EU  4300    4.0
+  84      KOV.IE  4100    10.0
+  85      KOV.PA  3900    12.0
+  86      KOV.KI  3800    15.0
+  87      HSEL.EU 2300    2.0
+  88      HSEL.IE 2500    4.0
+  89      HSEL.PA 2300    5.0
+  90      HSEL.KI 2600    6.0
+  91      LSEL.EU 2500    3.0
+  92      LSEL.IE 2800    2.0
+  93      LSEL.PA 2300    5.0
+  94      LSEL.KI 2500    7.0
+  95      PAP.EU  4500    4.0
+  96      PAP.IE  4700    10.0
+  97      PAP.PA  4300    12.0
+  98      PAP.KI  4800    15.0
+  99      ;
+ 100  Table cost(k,cp)  'The timber assortment cost parameters'
+ 101              Alpha   Beta
+ 102      MAT     190     1.0
+ 103      KUT     150     0.5
+ 104      KOT     120     3.0
+ 105      MAK     180     0.2
+ 106      KUK     150     0.3
+ 107      KOK     150     0.2
+GAMS 24.7.4  r58773 Released Sep 19, 2016 DEX-DEG x86 64bit/MacOS X                                                                                                                                                                    01/14/17 12:42:31 Page 3
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+ 108      ;
+ 109   
+ 110  variable
+ 111      z 'max profit'
+ 112      ;
+ 113  positive variables
+ 114      x(i,j)  'Product i for region j'
+ 115      t(k)    'Timber assortment for timber k'
+ 116      s(k)    'Material surplus timber k'
+ 117      ;
+ 118   
+ 119  equations
+ 120          profit                  'objective function'
+ 121          sawMillCap              ''
+ 122          plywoodMillCap  ''
+ 123          line1Cap                ''
+ 124          line2Cap                ''
+ 125          paperMillCap    ''
+ 126          surPlus(k)              ''
+ 127          MASproduction   ''
+ 128          KUSKUVproduction        ''
+ 129          KOSKOVproduction        ''
+ 130          HSELproduction  ''
+ 131          LSELproduction  ''
+ 132          PAPproduction   ''
+ 133          ;
+ 134   
+ 135                  profit ..                       z =e= sum((i,j), ((demand(i,j,'Gamma')-demand(i,j,'Delta')*x(i,j)) - c(i)*x(i,j))) -
+ 136                                    sum(k, (cost(k,'Alpha')+cost(k,'Beta')*t(k))) +
+ 137                                    sum((fp,j), 0.2*x(fp,j)*40) +
+ 138                                    sum(k,s(k)*cost(k,'Alpha'))
+ 139                                    ;
+ 140   
+ 141                  sawMillCap..            sum((sm,j), x(sm,j)) =l= 200;
+ 142                  plywoodMillCap..        sum((pm,j), x(pm,j)) =l= 90;
+ 143                  line1Cap..                      sum(j, x('HSEL',j)) =l= 220;
+ 144                  line2Cap..                      sum(j, x('LSEL',j)) =l= 180;
+ 145                  paperMillCap..          sum(j, x('PAP',j)) =l= 80;
+ 146          surPlus(k)..        t(k) - sum((i,j), x(i,j)*ProductReq(i,k)) =e= s(k);
+ 147                  MASproduction..         sum(j, 2*x('MAS',j)) =l= t('MAT');
+ 148          KUSKUVproduction..      sum(j, 2*x('KUS',j) + 2.8*x('KUV',j)) =l= t('KUT');
+ 149          KOSKOVproduction..      sum(j, 2*x('KOS',j) + 2.8*x('KOV',j)) =l= t('KOT');
+ 150          HSELproduction..        sum(j, 4.8*x('HSEL',j) - 0.8*x('MAS',j)) =l= t('MAK');
+ 151          LSELproduction..        sum(j, 4.2*x('LSEL',j) - 0.8*x('KOS',j) - 1.6*x('KOV',j)) =l= t('KOK');
+ 152          PAPproduction..         sum(j, x('PAP',j) - 0.8*x('KUS',j) - 1.6*x('KUV',j)) =l=
+ 153                                                                                          t('KUK') + 0.2 * sum(j,x('HSEL',j) + x('LSEL',j));
+ 154   
+ 155   
+ 156   
+ 157   
+ 158  model aStaticModel /all/ ;
+ 159   
+ 160  solve aStaticModel using mip maximizing z;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 DEX-DEG x86 64bit/MacOS X                                                                                                                                                                    01/14/17 12:42:31 Page 4
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+ 161   
+ 162  Display x.L, t.L, s.L;
+
+
+COMPILATION TIME     =        0.001 SECONDS      3 MB  24.7.4 r58773 DEX-DEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 DEX-DEG x86 64bit/MacOS X                                                                                                                                                                    01/14/17 12:42:31 Page 5
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Equation Listing    SOLVE aStaticModel Using MIP From line 160
+
+
+---- profit  =E=  objective function
+
+profit..  z + 546*x(MAS,EU) + 552*x(MAS,IE) + 554*x(MAS,PA) + 557*x(MAS,KI) + 496*x(KUS,EU) + 502*x(KUS,IE) + 504*x(KUS,PA) + 507*x(KUS,KI) + 456*x(KOS,EU) + 462*x(KOS,IE) + 464*x(KOS,PA) + 467*x(KOS,KI) + 2496*x(KUV,EU) + 2502*x(KUV,IE) + 2504*x(KUV,PA)
+     
+      + 2507*x(KUV,KI) + 2596*x(KOV,EU) + 2602*x(KOV,IE) + 2604*x(KOV,PA) + 2607*x(KOV,KI) + 822*x(HSEL,EU) + 824*x(HSEL,IE) + 825*x(HSEL,PA) + 826*x(HSEL,KI) + 803*x(LSEL,EU) + 802*x(LSEL,IE) + 805*x(LSEL,PA) + 807*x(LSEL,KI) + 1704*x(PAP,EU)
+     
+      + 1710*x(PAP,IE) + 1712*x(PAP,PA) + 1715*x(PAP,KI) + t(MAT) + 0.5*t(KUT) + 3*t(KOT) + 0.2*t(MAK) + 0.3*t(KUK) + 0.2*t(KOK) - 190*s(MAT) - 150*s(KUT) - 120*s(KOT) - 180*s(MAK) - 150*s(KUK) - 150*s(KOK) =E= 85460 ; (LHS = 0, INFES = 85460 ****)
+     
+
+---- sawMillCap  =L=  
+
+sawMillCap..  x(MAS,EU) + x(MAS,IE) + x(MAS,PA) + x(MAS,KI) + x(KUS,EU) + x(KUS,IE) + x(KUS,PA) + x(KUS,KI) + x(KOS,EU) + x(KOS,IE) + x(KOS,PA) + x(KOS,KI) =L= 200 ; (LHS = 0)
+     
+
+---- plywoodMillCap  =L=  
+
+plywoodMillCap..  x(KUV,EU) + x(KUV,IE) + x(KUV,PA) + x(KUV,KI) + x(KOV,EU) + x(KOV,IE) + x(KOV,PA) + x(KOV,KI) =L= 90 ; (LHS = 0)
+     
+
+---- line1Cap  =L=  
+
+line1Cap..  x(HSEL,EU) + x(HSEL,IE) + x(HSEL,PA) + x(HSEL,KI) =L= 220 ; (LHS = 0)
+     
+
+---- line2Cap  =L=  
+
+line2Cap..  x(LSEL,EU) + x(LSEL,IE) + x(LSEL,PA) + x(LSEL,KI) =L= 180 ; (LHS = 0)
+     
+
+---- paperMillCap  =L=  
+
+paperMillCap..  x(PAP,EU) + x(PAP,IE) + x(PAP,PA) + x(PAP,KI) =L= 80 ; (LHS = 0)
+     
+
+---- surPlus  =E=  
+
+surPlus(MAT)..  - 2*x(MAS,EU) - 2*x(MAS,IE) - 2*x(MAS,PA) - 2*x(MAS,KI) + t(MAT) - s(MAT) =E= 0 ; (LHS = 0)
+     
+surPlus(KUT)..  - 2*x(KUS,EU) - 2*x(KUS,IE) - 2*x(KUS,PA) - 2*x(KUS,KI) - 2.8*x(KUV,EU) - 2.8*x(KUV,IE) - 2.8*x(KUV,PA) - 2.8*x(KUV,KI) + t(KUT) - s(KUT) =E= 0 ; (LHS = 0)
+     
+surPlus(KOT)..  - 2*x(KOS,EU) - 2*x(KOS,IE) - 2*x(KOS,PA) - 2*x(KOS,KI) - 2.8*x(KOV,EU) - 2.8*x(KOV,IE) - 2.8*x(KOV,PA) - 2.8*x(KOV,KI) + t(KOT) - s(KOT) =E= 0 ; (LHS = 0)
+     
+surPlus(MAK)..  0.8*x(MAS,EU) + 0.8*x(MAS,IE) + 0.8*x(MAS,PA) + 0.8*x(MAS,KI) - 4.8*x(HSEL,EU) - 4.8*x(HSEL,IE) - 4.8*x(HSEL,PA) - 4.8*x(HSEL,KI) + t(MAK) - s(MAK) =E= 0 ; (LHS = 0)
+     
+surPlus(KUK)..  0.8*x(KUS,EU) + 0.8*x(KUS,IE) + 0.8*x(KUS,PA) + 0.8*x(KUS,KI) + 1.6*x(KUV,EU) + 1.6*x(KUV,IE) + 1.6*x(KUV,PA) + 1.6*x(KUV,KI) - x(PAP,EU) - x(PAP,IE) - x(PAP,PA) - x(PAP,KI) + t(KUK) - s(KUK) =E= 0 ; (LHS = 0)
+     
+surPlus(KOK)..  0.8*x(KOS,EU) + 0.8*x(KOS,IE) + 0.8*x(KOS,PA) + 0.8*x(KOS,KI) + 1.6*x(KOV,EU) + 1.6*x(KOV,IE) + 1.6*x(KOV,PA) + 1.6*x(KOV,KI) - 4.8*x(LSEL,EU) - 4.8*x(LSEL,IE) - 4.8*x(LSEL,PA) - 4.8*x(LSEL,KI) + t(KOK) - s(KOK) =E= 0 ; (LHS = 0)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 DEX-DEG x86 64bit/MacOS X                                                                                                                                                                    01/14/17 12:42:31 Page 6
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Equation Listing    SOLVE aStaticModel Using MIP From line 160
+
+
+---- MASproduction  =L=  
+
+MASproduction..  2*x(MAS,EU) + 2*x(MAS,IE) + 2*x(MAS,PA) + 2*x(MAS,KI) - t(MAT) =L= 0 ; (LHS = 0)
+     
+
+---- KUSKUVproduction  =L=  
+
+KUSKUVproduction..  2*x(KUS,EU) + 2*x(KUS,IE) + 2*x(KUS,PA) + 2*x(KUS,KI) + 2.8*x(KUV,EU) + 2.8*x(KUV,IE) + 2.8*x(KUV,PA) + 2.8*x(KUV,KI) - t(KUT) =L= 0 ; (LHS = 0)
+     
+
+---- KOSKOVproduction  =L=  
+
+KOSKOVproduction..  2*x(KOS,EU) + 2*x(KOS,IE) + 2*x(KOS,PA) + 2*x(KOS,KI) + 2.8*x(KOV,EU) + 2.8*x(KOV,IE) + 2.8*x(KOV,PA) + 2.8*x(KOV,KI) - t(KOT) =L= 0 ; (LHS = 0)
+     
+
+---- HSELproduction  =L=  
+
+HSELproduction..  - 0.8*x(MAS,EU) - 0.8*x(MAS,IE) - 0.8*x(MAS,PA) - 0.8*x(MAS,KI) + 4.8*x(HSEL,EU) + 4.8*x(HSEL,IE) + 4.8*x(HSEL,PA) + 4.8*x(HSEL,KI) - t(MAK) =L= 0 ; (LHS = 0)
+     
+
+---- LSELproduction  =L=  
+
+LSELproduction..  - 0.8*x(KOS,EU) - 0.8*x(KOS,IE) - 0.8*x(KOS,PA) - 0.8*x(KOS,KI) - 1.6*x(KOV,EU) - 1.6*x(KOV,IE) - 1.6*x(KOV,PA) - 1.6*x(KOV,KI) + 4.2*x(LSEL,EU) + 4.2*x(LSEL,IE) + 4.2*x(LSEL,PA) + 4.2*x(LSEL,KI) - t(KOK) =L= 0 ; (LHS = 0)
+     
+
+---- PAPproduction  =L=  
+
+PAPproduction..  - 0.8*x(KUS,EU) - 0.8*x(KUS,IE) - 0.8*x(KUS,PA) - 0.8*x(KUS,KI) - 1.6*x(KUV,EU) - 1.6*x(KUV,IE) - 1.6*x(KUV,PA) - 1.6*x(KUV,KI) - 0.2*x(HSEL,EU) - 0.2*x(HSEL,IE) - 0.2*x(HSEL,PA) - 0.2*x(HSEL,KI) - 0.2*x(LSEL,EU) - 0.2*x(LSEL,IE)
+     
+      - 0.2*x(LSEL,PA) - 0.2*x(LSEL,KI) + x(PAP,EU) + x(PAP,IE) + x(PAP,PA) + x(PAP,KI) - t(KUK) =L= 0 ; (LHS = 0)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 DEX-DEG x86 64bit/MacOS X                                                                                                                                                                    01/14/17 12:42:31 Page 7
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Column Listing      SOLVE aStaticModel Using MIP From line 160
+
+
+---- z  max profit
+
+z
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       profit
+
+
+---- x  Product i for region j
+
+x(MAS,EU)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+      546       profit
+        1       sawMillCap
+       -2       surPlus(MAT)
+        0.8     surPlus(MAK)
+        2       MASproduction
+       -0.8     HSELproduction
+
+x(MAS,IE)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+      552       profit
+        1       sawMillCap
+       -2       surPlus(MAT)
+        0.8     surPlus(MAK)
+        2       MASproduction
+       -0.8     HSELproduction
+
+x(MAS,PA)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+      554       profit
+        1       sawMillCap
+       -2       surPlus(MAT)
+        0.8     surPlus(MAK)
+        2       MASproduction
+       -0.8     HSELproduction
+
+x(MAS,KI)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+      557       profit
+        1       sawMillCap
+       -2       surPlus(MAT)
+        0.8     surPlus(MAK)
+        2       MASproduction
+       -0.8     HSELproduction
+
+x(KUS,EU)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+      496       profit
+        1       sawMillCap
+       -2       surPlus(KUT)
+        0.8     surPlus(KUK)
+        2       KUSKUVproduction
+       -0.8     PAPproduction
+GAMS 24.7.4  r58773 Released Sep 19, 2016 DEX-DEG x86 64bit/MacOS X                                                                                                                                                                    01/14/17 12:42:31 Page 8
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Column Listing      SOLVE aStaticModel Using MIP From line 160
+
+
+     x  Product i for region j
+
+
+x(KUS,IE)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+      502       profit
+        1       sawMillCap
+       -2       surPlus(KUT)
+        0.8     surPlus(KUK)
+        2       KUSKUVproduction
+       -0.8     PAPproduction
+
+x(KUS,PA)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+      504       profit
+        1       sawMillCap
+       -2       surPlus(KUT)
+        0.8     surPlus(KUK)
+        2       KUSKUVproduction
+       -0.8     PAPproduction
+
+x(KUS,KI)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+      507       profit
+        1       sawMillCap
+       -2       surPlus(KUT)
+        0.8     surPlus(KUK)
+        2       KUSKUVproduction
+       -0.8     PAPproduction
+
+x(KOS,EU)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+      456       profit
+        1       sawMillCap
+       -2       surPlus(KOT)
+        0.8     surPlus(KOK)
+        2       KOSKOVproduction
+       -0.8     LSELproduction
+
+x(KOS,IE)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+      462       profit
+        1       sawMillCap
+       -2       surPlus(KOT)
+        0.8     surPlus(KOK)
+        2       KOSKOVproduction
+       -0.8     LSELproduction
+
+x(KOS,PA)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+      464       profit
+        1       sawMillCap
+       -2       surPlus(KOT)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 DEX-DEG x86 64bit/MacOS X                                                                                                                                                                    01/14/17 12:42:31 Page 9
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Column Listing      SOLVE aStaticModel Using MIP From line 160
+
+
+     x  Product i for region j
+
+        0.8     surPlus(KOK)
+        2       KOSKOVproduction
+       -0.8     LSELproduction
+
+x(KOS,KI)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+      467       profit
+        1       sawMillCap
+       -2       surPlus(KOT)
+        0.8     surPlus(KOK)
+        2       KOSKOVproduction
+       -0.8     LSELproduction
+
+x(KUV,EU)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+     2496       profit
+        1       plywoodMillCap
+       -2.8     surPlus(KUT)
+        1.6     surPlus(KUK)
+        2.8     KUSKUVproduction
+       -1.6     PAPproduction
+
+x(KUV,IE)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+     2502       profit
+        1       plywoodMillCap
+       -2.8     surPlus(KUT)
+        1.6     surPlus(KUK)
+        2.8     KUSKUVproduction
+       -1.6     PAPproduction
+
+x(KUV,PA)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+     2504       profit
+        1       plywoodMillCap
+       -2.8     surPlus(KUT)
+        1.6     surPlus(KUK)
+        2.8     KUSKUVproduction
+       -1.6     PAPproduction
+
+x(KUV,KI)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+     2507       profit
+        1       plywoodMillCap
+       -2.8     surPlus(KUT)
+        1.6     surPlus(KUK)
+        2.8     KUSKUVproduction
+       -1.6     PAPproduction
+
+x(KOV,EU)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 DEX-DEG x86 64bit/MacOS X                                                                                                                                                                   01/14/17 12:42:31 Page 10
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Column Listing      SOLVE aStaticModel Using MIP From line 160
+
+
+     x  Product i for region j
+
+     2596       profit
+        1       plywoodMillCap
+       -2.8     surPlus(KOT)
+        1.6     surPlus(KOK)
+        2.8     KOSKOVproduction
+       -1.6     LSELproduction
+
+x(KOV,IE)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+     2602       profit
+        1       plywoodMillCap
+       -2.8     surPlus(KOT)
+        1.6     surPlus(KOK)
+        2.8     KOSKOVproduction
+       -1.6     LSELproduction
+
+x(KOV,PA)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+     2604       profit
+        1       plywoodMillCap
+       -2.8     surPlus(KOT)
+        1.6     surPlus(KOK)
+        2.8     KOSKOVproduction
+       -1.6     LSELproduction
+
+x(KOV,KI)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+     2607       profit
+        1       plywoodMillCap
+       -2.8     surPlus(KOT)
+        1.6     surPlus(KOK)
+        2.8     KOSKOVproduction
+       -1.6     LSELproduction
+
+x(HSEL,EU)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+      822       profit
+        1       line1Cap
+       -4.8     surPlus(MAK)
+        4.8     HSELproduction
+       -0.2     PAPproduction
+
+x(HSEL,IE)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+      824       profit
+        1       line1Cap
+       -4.8     surPlus(MAK)
+        4.8     HSELproduction
+       -0.2     PAPproduction
+
+x(HSEL,PA)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 DEX-DEG x86 64bit/MacOS X                                                                                                                                                                   01/14/17 12:42:31 Page 11
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Column Listing      SOLVE aStaticModel Using MIP From line 160
+
+
+     x  Product i for region j
+
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+      825       profit
+        1       line1Cap
+       -4.8     surPlus(MAK)
+        4.8     HSELproduction
+       -0.2     PAPproduction
+
+x(HSEL,KI)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+      826       profit
+        1       line1Cap
+       -4.8     surPlus(MAK)
+        4.8     HSELproduction
+       -0.2     PAPproduction
+
+x(LSEL,EU)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+      803       profit
+        1       line2Cap
+       -4.8     surPlus(KOK)
+        4.2     LSELproduction
+       -0.2     PAPproduction
+
+x(LSEL,IE)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+      802       profit
+        1       line2Cap
+       -4.8     surPlus(KOK)
+        4.2     LSELproduction
+       -0.2     PAPproduction
+
+x(LSEL,PA)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+      805       profit
+        1       line2Cap
+       -4.8     surPlus(KOK)
+        4.2     LSELproduction
+       -0.2     PAPproduction
+
+x(LSEL,KI)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+      807       profit
+        1       line2Cap
+       -4.8     surPlus(KOK)
+        4.2     LSELproduction
+       -0.2     PAPproduction
+
+x(PAP,EU)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+     1704       profit
+        1       paperMillCap
+GAMS 24.7.4  r58773 Released Sep 19, 2016 DEX-DEG x86 64bit/MacOS X                                                                                                                                                                   01/14/17 12:42:31 Page 12
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Column Listing      SOLVE aStaticModel Using MIP From line 160
+
+
+     x  Product i for region j
+
+       -1       surPlus(KUK)
+        1       PAPproduction
+
+x(PAP,IE)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+     1710       profit
+        1       paperMillCap
+       -1       surPlus(KUK)
+        1       PAPproduction
+
+x(PAP,PA)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+     1712       profit
+        1       paperMillCap
+       -1       surPlus(KUK)
+        1       PAPproduction
+
+x(PAP,KI)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+     1715       profit
+        1       paperMillCap
+       -1       surPlus(KUK)
+        1       PAPproduction
+
+
+---- t  Timber assortment for timber k
+
+t(MAT)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       profit
+        1       surPlus(MAT)
+       -1       MASproduction
+
+t(KUT)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        0.5     profit
+        1       surPlus(KUT)
+       -1       KUSKUVproduction
+
+t(KOT)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        3       profit
+        1       surPlus(KOT)
+       -1       KOSKOVproduction
+
+t(MAK)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        0.2     profit
+        1       surPlus(MAK)
+       -1       HSELproduction
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 DEX-DEG x86 64bit/MacOS X                                                                                                                                                                   01/14/17 12:42:31 Page 13
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Column Listing      SOLVE aStaticModel Using MIP From line 160
+
+
+     t  Timber assortment for timber k
+
+t(KUK)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        0.3     profit
+        1       surPlus(KUK)
+       -1       PAPproduction
+
+t(KOK)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        0.2     profit
+        1       surPlus(KOK)
+       -1       LSELproduction
+
+
+---- s  Material surplus timber k
+
+s(MAT)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+     -190       profit
+       -1       surPlus(MAT)
+
+s(KUT)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+     -150       profit
+       -1       surPlus(KUT)
+
+s(KOT)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+     -120       profit
+       -1       surPlus(KOT)
+
+s(MAK)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+     -180       profit
+       -1       surPlus(MAK)
+
+s(KUK)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+     -150       profit
+       -1       surPlus(KUK)
+
+s(KOK)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+     -150       profit
+       -1       surPlus(KOK)
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 DEX-DEG x86 64bit/MacOS X                                                                                                                                                                   01/14/17 12:42:31 Page 14
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Model Statistics    SOLVE aStaticModel Using MIP From line 160
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS          13     SINGLE EQUATIONS           18
+BLOCKS OF VARIABLES           4     SINGLE VARIABLES           45
+NON ZERO ELEMENTS           207
+
+
+GENERATION TIME      =        0.005 SECONDS      4 MB  24.7.4 r58773 DEX-DEG
+
+
+EXECUTION TIME       =        0.005 SECONDS      4 MB  24.7.4 r58773 DEX-DEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 DEX-DEG x86 64bit/MacOS X                                                                                                                                                                   01/14/17 12:42:31 Page 15
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Solution Report     SOLVE aStaticModel Using MIP From line 160
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   aStaticModel        OBJECTIVE  z
+     TYPE    MIP                 DIRECTION  MAXIMIZE
+     SOLVER  CPLEX               FROM LINE  160
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      3 Unbounded                 
+**** OBJECTIVE VALUE            85460.0000
+
+ RESOURCE USAGE, LIMIT          0.006       300.000
+ ITERATION COUNT, LIMIT         0     999999999
+
+IBM ILOG CPLEX   24.7.4 r58773 Released Sep 19, 2016 DEG x86 64bit/MacOS X    
+Cplex 12.6.3.0
+
+Space for names approximately 0.00 Mb
+Use option 'names no' to turn use of names off
+LP status(4): unbounded or infeasible
+Cplex Time: 0.00sec (det. 0.01 ticks)
+Presolve found the problem infeasible or unbounded.
+Rerunning with presolve turned off and solving with LPMETHOD=0
+LP status(2): unbounded
+Cplex Time: 0.00sec (det. 0.01 ticks)
+Model has an unbounded ray.
+
+**** ERRORS/WARNINGS IN VARIABLE t(MAK)
+     1 error(s): Unbounded variable
+
+                           LOWER          LEVEL          UPPER         MARGINAL
+
+---- EQU profit         85460.0000     85460.0000     85460.0000         1.0000      
+---- EQU sawMillCap        -INF             .           200.0000          .          
+---- EQU plywoodMi~        -INF             .            90.0000          .          
+---- EQU line1Cap          -INF             .           220.0000          .          
+---- EQU line2Cap          -INF             .           180.0000          .          
+---- EQU paperMill~        -INF             .            80.0000          .          
+
+  profit  objective function
+  sawMillCap  
+  plywoodMillCap  
+  line1Cap  
+  line2Cap  
+  paperMillCap  
+
+---- EQU surPlus  
+
+           LOWER          LEVEL          UPPER         MARGINAL
+
+MAT          .              .              .          -190.0000      
+KUT          .              .              .          -150.0000      
+KOT          .              .              .          -120.0000      
+MAK          .              .              .          -180.0000      
+GAMS 24.7.4  r58773 Released Sep 19, 2016 DEX-DEG x86 64bit/MacOS X                                                                                                                                                                   01/14/17 12:42:31 Page 16
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Solution Report     SOLVE aStaticModel Using MIP From line 160
+
+
+     EQU surPlus  
+
+           LOWER          LEVEL          UPPER         MARGINAL
+
+KUK          .              .              .          -150.0000      
+KOK          .              .              .          -150.0000      
+
+                           LOWER          LEVEL          UPPER         MARGINAL
+
+---- EQU MASproduc~        -INF             .              .              .          
+---- EQU KUSKUVpro~        -INF             .              .              .          
+---- EQU KOSKOVpro~        -INF             .              .              .          
+---- EQU HSELprodu~        -INF             .              .              .          
+---- EQU LSELprodu~        -INF             .              .              .          
+---- EQU PAPproduc~        -INF             .              .              .          
+
+  MASproduction  
+  KUSKUVproduction  
+  KOSKOVproduction  
+  HSELproduction  
+  LSELproduction  
+  PAPproduction  
+
+                           LOWER          LEVEL          UPPER         MARGINAL
+
+---- VAR z                 -INF        85460.0000        +INF             .          
+
+  z  max profit
+
+---- VAR x  Product i for region j
+
+               LOWER          LEVEL          UPPER         MARGINAL
+
+MAS .EU          .              .            +INF         -782.0000      
+MAS .IE          .              .            +INF         -788.0000      
+MAS .PA          .              .            +INF         -790.0000      
+MAS .KI          .              .            +INF         -793.0000      
+KUS .EU          .              .            +INF         -676.0000      
+KUS .IE          .              .            +INF         -682.0000      
+KUS .PA          .              .            +INF         -684.0000      
+KUS .KI          .              .            +INF         -687.0000      
+KOS .EU          .              .            +INF         -576.0000      
+KOS .IE          .              .            +INF         -582.0000      
+KOS .PA          .              .            +INF         -584.0000      
+KOS .KI          .              .            +INF         -587.0000      
+KUV .EU          .              .            +INF        -2676.0000      
+KUV .IE          .              .            +INF        -2682.0000      
+KUV .PA          .              .            +INF        -2684.0000      
+KUV .KI          .              .            +INF        -2687.0000      
+KOV .EU          .              .            +INF        -2692.0000      
+KOV .IE          .              .            +INF        -2698.0000      
+KOV .PA          .              .            +INF        -2700.0000      
+KOV .KI          .              .            +INF        -2703.0000      
+GAMS 24.7.4  r58773 Released Sep 19, 2016 DEX-DEG x86 64bit/MacOS X                                                                                                                                                                   01/14/17 12:42:31 Page 17
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Solution Report     SOLVE aStaticModel Using MIP From line 160
+
+
+     VAR x  Product i for region j
+
+               LOWER          LEVEL          UPPER         MARGINAL
+
+HSEL.EU          .              .            +INF        -1686.0000      
+HSEL.IE          .              .            +INF        -1688.0000      
+HSEL.PA          .              .            +INF        -1689.0000      
+HSEL.KI          .              .            +INF        -1690.0000      
+LSEL.EU          .              .            +INF        -1523.0000      
+LSEL.IE          .              .            +INF        -1522.0000      
+LSEL.PA          .              .            +INF        -1525.0000      
+LSEL.KI          .              .            +INF        -1527.0000      
+PAP .EU          .              .            +INF        -1854.0000      
+PAP .IE          .              .            +INF        -1860.0000      
+PAP .PA          .              .            +INF        -1862.0000      
+PAP .KI          .              .            +INF        -1865.0000      
+
+---- VAR t  Timber assortment for timber k
+
+           LOWER          LEVEL          UPPER         MARGINAL
+
+MAT          .              .            +INF          189.0000  NOPT
+KUT          .              .            +INF          149.5000  NOPT
+KOT          .              .            +INF          117.0000  NOPT
+MAK          .              .            +INF          179.8000 UNBND
+KUK          .              .            +INF          149.7000  NOPT
+KOK          .              .            +INF          149.8000  NOPT
+
+---- VAR s  Material surplus timber k
+
+           LOWER          LEVEL          UPPER         MARGINAL
+
+MAT          .              .            +INF             .          
+KUT          .              .            +INF             .          
+KOT          .              .            +INF             .          
+MAK          .              .            +INF             .          
+KUK          .              .            +INF             .          
+KOK          .              .            +INF             .          
+
+
+**** REPORT SUMMARY :        5     NONOPT ( NOPT)
+                             0 INFEASIBLE
+                             1  UNBOUNDED (UNBND)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 DEX-DEG x86 64bit/MacOS X                                                                                                                                                                   01/14/17 12:42:31 Page 18
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+E x e c u t i o n
+
+
+----    162 VARIABLE x.L  Product i for region j
+
+                      ( ALL       0.000 )
+
+
+----    162 VARIABLE t.L  Timber assortment for timber k
+
+                      ( ALL       0.000 )
+
+
+----    162 VARIABLE s.L  Material surplus timber k
+
+                      ( ALL       0.000 )
+
+
+
+EXECUTION TIME       =        0.001 SECONDS      3 MB  24.7.4 r58773 DEX-DEG
+
+
+USER: Course License Fall 2016                       A160811:0602AO-GEN
+      Management Engineering, Technical University of Denmark    DC8756
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /Users/Gugli/Dropbox/#DTU/1Kandidat/1.Semester/42112MatModel/GAMS/Projekt/MathProg/ExcerciseA.gms
+Output     /Users/Gugli/Dropbox/#DTU/1Kandidat/1.Semester/42112MatModel/GAMS/Projekt/MathProg/ExcerciseA.lst
