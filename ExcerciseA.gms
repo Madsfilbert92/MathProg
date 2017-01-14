@@ -16,7 +16,8 @@ SETS
         PlywoodMillProducts(Material) 'Products prodcued at plywoodmill' /KUV, KOV/
         FuelProducts(Material) 'Products producing fuel' /MAS, KUS, KOS, KUV, KOV/
         PulpMillProducts(Material) 'Products produced at pulpmill' /HSEL, LSEL/
-        DemandParameters 'The demand parameters table 1' /Gamma, Delta/;
+        DemandParameters 'The demand parameters table 4' /Gamma, Delta/
+        CostParameters 'The cost parameters table 1' /Alpha, Beta/
         ;
 
 ALIAS(Products,i);
@@ -28,6 +29,7 @@ ALIAS(PlywoodMillProducts, pm);
 ALIAS(FuelProducts, fp);
 ALIAS(PulpMillProducts, pmp);
 ALIAS(DemandParameters, dp);
+ALIAS(CostParameters, cp);
 
 Table ProductReq(i,ProM) 'Amount of timber needed for each product'
         MAT  KUT  KOT  MAK  KUK  KOK HSEL LSEL
@@ -96,7 +98,16 @@ Table demand(i,j,dp) 'The demand parameters of the products for different market
     PAP.IE  4700    10.0
     PAP.PA  4300    12.0
     PAP.KI  4800    15.0   
-    ;             
+    ;    
+Table cost(k,cp)  'The timber assortment cost parameters'  
+            Alpha   Beta
+    MAT     190     1.0
+    KUT     150     0.5
+    KOT     120     3.0
+    MAK     180     0.2
+    KUK     150     0.3
+    KOK     150     0.2    
+    ;    
 
 variable
     z 'max profit'
@@ -123,18 +134,18 @@ equations
         PAPproduction	''
         ;
 
-		profit .. 			z =e= sum((i,j), x(i,j)*((g(i,j)-d(i,j)*x(i,j)) - c(i)) -
-                                  sum(k, t(k)*(a(k)+b(k)*t(k))) +
+		profit .. 			z =e= sum((i,j), x(i,j)*((demand(i,j,'Gamma')-demand(i,j,'Delta')*x(i,j)) - c(i))) -
+                                  sum(k, t(k)*(cost(k,'Alpha')+cost(k,'Beta')*t(k))) +
                                   sum((fp,j), 0.2*x(fp,j)*40) +
                                   sum(k,s(k)*a(k)) 
                                   ;
 							
-		sawMillCap.. 		sum((sm,j), x(sm,j)) =l= 200000; 
- 		plywoodMillCap.. 	sum((pm,j), x(pm,j)) =l= 90000;
- 		line1Cap..			sum(j, x('HSEL',j)) =l= 220000;
- 		line2Cap..			sum(j, x('LSEL',j)) =l= 180000;
- 		paperMillCap..		sum(i, x('8',j)) =l= 80000;
- 		surPlus(k)..		t(k) - sum((i,j), x(i,j)*ProductReq(i,k)) =e= s(i);
+		sawMillCap.. 		sum((sm,j), x(sm,j)) =l= 200; 
+ 		plywoodMillCap.. 	sum((pm,j), x(pm,j)) =l= 90;
+ 		line1Cap..			sum(j, x('HSEL',j)) =l= 220;
+ 		line2Cap..			sum(j, x('LSEL',j)) =l= 180;
+ 		paperMillCap..		sum(j, x('8',j)) =l= 80;
+        surPlus(k)..        t(k) - sum((i,j), x(i,j)*ProductReq(i,k)) =e= s(i);
  		MASproduction..		sum(j, 2*x('1',j)) =l= t('1');
         KUSKUVproduction..	sum(j, 2*x('2',j) + 2.8*x('4',j)) =l= t('2');
         KOSKOVproduction..	sum(j, 2*x('3',j) + 2.8*x('5',j)) =l= t('3');
