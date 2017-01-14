@@ -125,7 +125,7 @@ equations
         line1Cap		''
         line2Cap		''
         paperMillCap	''
-        surPlus(j)		''
+        surPlus(k)		''
         MASproduction	''
         KUSKUVproduction	''
         KOSKOVproduction	''
