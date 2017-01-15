@@ -13,7 +13,6 @@ SETS
         SawMillProducts(Products) 'Products produced at the sawmill' /MAS, KUS, KOS/
         PlywoodMillProducts(Products) 'Products prodcued at plywoodmill' /KUV, KOV/
         FuelProducts(Products) 'Products producing fuel' /MAS, KUS, KOS, KUV, KOV/
-
         DemandParameters 'The demand parameters table 4' /Gamma, Delta/
         CostParameters 'The cost parameters table 1' /Alpha, Beta/
         Quantities 'Possible Quantities to be sold' /1*1000/;
@@ -161,10 +160,10 @@ equations
         NotMoreThanOneT(k) .. sum(q, t(k,q)) =l= 1;
         surPlus(k)..        sum(q, t(k,q)*ord(q)*10) - sum(i, x(i)*ProductReq(i,k)) =e= s(k);
  		materialReq(k) ..   sum(i, ProductReq(i,k)*x(i)) =l= sum(q, t(k,q)*ord(q)*10); 
-        SoldLessThanProduced(i) .. sum((j,q), sol(i,j,q)*ord(q)) =e=  x(i)/10;
+        SoldLessThanProduced(i) .. sum((j,q), sol(i,j,q)*ord(q)) =l=  x(i)/10;
         NotMoreThanOneQuan(i,j) .. sum(q, sol(i,j,q)) =l= 1; 
-        HSELToSell .. sum((j,q), sol('HSEL', j,q)*ord(q)) =e= (x('HSEL')-0.2*x('PAP'))/10;
-        LSELToSell .. sum((j,q), sol('LSEL', j, q)*ord(q)) =e= (x('LSEL')-0.2*x('PAP'))/10;
+        HSELToSell .. sum((j,q), sol('HSEL', j,q)*ord(q)) =l= (x('HSEL')-0.2*x('PAP'))/10;
+        LSELToSell .. sum((j,q), sol('LSEL', j, q)*ord(q)) =l= (x('LSEL')-0.2*x('PAP'))/10;
         IsThereSurplus(k) .. s(k) =g= y(k); 
 
 model aStaticModel /all/ ;
