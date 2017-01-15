@@ -13,7 +13,6 @@ SETS
         SawMillProducts(Products) 'Products produced at the sawmill' /MAS, KUS, KOS/
         PlywoodMillProducts(Products) 'Products prodcued at plywoodmill' /KUV, KOV/
         FuelProducts(Products) 'Products producing fuel' /MAS, KUS, KOS, KUV, KOV/
-        PulpMillProducts(Products) 'Products produced at pulpmill' /HSEL, LSEL/
         DemandParameters 'The demand parameters table 4' /Gamma, Delta/
         CostParameters 'The cost parameters table 1' /Alpha, Beta/
         ;
@@ -24,7 +23,6 @@ ALIAS(Timber,k);
 ALIAS(SawMillProducts,sm);
 ALIAS(PlywoodMillProducts, pm);
 ALIAS(FuelProducts, fp);
-ALIAS(PulpMillProducts, pmp);
 ALIAS(DemandParameters, dp);
 ALIAS(CostParameters, cp);
 
@@ -114,6 +112,9 @@ integer variables
      t(k)    'Timber assortment for timber k in 10000'
      s(k)    'Material surplus timber k in 1000';
 
+binary variable
+    y(k) 'if there is a surplus of material k'; 
+
 
 equations
         profit 			'objective function'
@@ -127,12 +128,13 @@ equations
         SoldLessThanProduced ''
         HSELToSell      ''
         LSELToSell      ''
+        IsThereSurplus  ''
         ;
 
 		profit .. 			z =e= -sum((i,j), ((demand(i,j,'Gamma')-demand(i,j,'Delta')*(sol(i,j)*10)) - c(i)*x(i))) +
                                   sum(k, (cost(k,'Alpha')+cost(k,'Beta')*t(k)*10)) +
                                   sum(fp, 0.2*x(fp)*40) +
-                                  sum(k,s(k)*cost(k,'Alpha')) 
+                                  sum(k, cost(k,'Alpha')*y(k)) 
                                   ;
 		sawMillCap.. 		sum((sm), x(sm)) =l= 200; 
  		plywoodMillCap.. 	sum((pm), x(pm)) =l= 90;
@@ -141,12 +143,13 @@ equations
  		paperMillCap..		x('PAP') =l= 80;
         surPlus(k)..        t(k)*10 - sum((i,j), x(i)*ProductReq(i,k)) =e= s(k);
  		materialReq(k) ..   sum(i, ProductReq(i,k)*x(i)) =l= t(k)*10; 
-        SoldLessThanProduced(i) .. sum(j, sol(i,j)) =l=  x(i)/10;
+        SoldLessThanProduced(i) .. sum(j, sol(i,j)) =e=  x(i)/10;
         HSELToSell .. sum(j, sol('HSEL', j)) =e= (x('HSEL')-0.2*x('PAP'))/10;
         LSELToSell .. sum(j, sol('LSEL', j)) =e= (x('LSEL')-0.2*x('PAP'))/10;
+        IsThereSurplus(k) .. s(k) =l= 1000000000000*y(k); 
 
 model aStaticModel /all/ ;
 
 solve aStaticModel using mip maximizing z;
 
-Display x.L, t.L, sol.L, x.M;
+Display x.L, t.L, sol.L, x.M, s.L;
