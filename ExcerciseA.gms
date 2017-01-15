@@ -165,7 +165,7 @@ equations
         NotMoreThanOneQuan(i,j) .. sum(q, sol(i,j,q)) =l= 1; 
         HSELToSell .. sum((j,q), sol('HSEL', j,q)*ord(q)) =e= (x('HSEL')-0.2*x('PAP'))/10;
         LSELToSell .. sum((j,q), sol('LSEL', j, q)*ord(q)) =e= (x('LSEL')-0.2*x('PAP'))/10;
-        IsThereSurplus(k) .. s(k) =l= 1000000000000*y(k); 
+        IsThereSurplus(k) .. s(k) =g= y(k); 
 
 model aStaticModel /all/ ;
 
