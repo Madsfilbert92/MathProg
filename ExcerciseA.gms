@@ -7,11 +7,9 @@ option limrow=100; // limit number of rows in
 option limcol=100; // limit number of columns
 //-----------------------------------------------------------------
 SETS
-        Material   'All Materials'     / MAS, KUS, KOS, KUV, KOV, HSEL, LSEL, PAP,MAT, KUT, KOT, MAK, KUK, KOK, FUEL/
-        Products(Material)   'Products'  / MAS, KUS, KOS, KUV, KOV, HSEL, LSEL, PAP/
+        Products   'Products'  / MAS, KUS, KOS, KUV, KOV, HSEL, LSEL, PAP/
         Regions   'Regions'            /EU, IE, PA, KI/
-        ProductionMaterials(Material) 'Materials used for other products' /MAT,KUT,KOT,MAK,KUK,KOK,HSEL,LSEL/
-        Timber(ProductionMaterials)    'Types of timber' /MAT, KUT, KOT, MAK, KUK, KOK/
+        Timber    'Types of timber' /MAT, KUT, KOT, MAK, KUK, KOK/
         SawMillProducts(Products) 'Products produced at the sawmill' /MAS, KUS, KOS/
         PlywoodMillProducts(Products) 'Products prodcued at plywoodmill' /KUV, KOV/
         FuelProducts(Products) 'Products producing fuel' /MAS, KUS, KOS, KUV, KOV/
@@ -23,7 +21,6 @@ SETS
 ALIAS(Products,i);
 ALIAS(Regions,j);
 ALIAS(Timber,k);
-ALIAS(ProductionMaterials,ProM);
 ALIAS(SawMillProducts,sm);
 ALIAS(PlywoodMillProducts, pm);
 ALIAS(FuelProducts, fp);
@@ -31,8 +28,8 @@ ALIAS(PulpMillProducts, pmp);
 ALIAS(DemandParameters, dp);
 ALIAS(CostParameters, cp);
 
-Table ProductReq(i,ProM) 'Amount of timber needed for each product'
-        MAT  KUT  KOT  MAK  KUK  KOK HSEL LSEL
+Table ProductReq(i,k) 'Amount of timber needed for each product'
+        MAT  KUT  KOT  MAK  KUK  KOK 
     
     MAS 2.0           -0.8           
     
@@ -48,7 +45,7 @@ Table ProductReq(i,ProM) 'Amount of timber needed for each product'
     
     LSEL                         4.8
     
-    PAP                     1.0       0.2  0.2;           
+    PAP                     1.0                 
 
 Parameters
     c(i) 'cost of making product'
@@ -111,59 +108,45 @@ variable
     z 'max profit'
     ;
 
-Integer variables
+integer variables
      x(i)     'Produced of product i in 1000'
      sol(i,j) 'sold product i in region j in 10000'
      t(k)    'Timber assortment for timber k in 10000'
      s(k)    'Material surplus timber k in 1000';
-        
+
+
 equations
         profit 			'objective function'
+        materialReq     ''
         sawMillCap 		''
         plywoodMillCap 	''
         line1Cap		''
         line2Cap		''
         paperMillCap	''
         surPlus(k)		''
-        MASproduction	''
-        KUSKUVproduction	''
-        KOSKOVproduction	''
-        HSELproduction	''
-        LSELproduction	''
-        PAPproduction	''
         SoldLessThanProduced ''
         HSELToSell      ''
         LSELToSell      ''
         ;
 
-		profit .. 			z =e= sum((i,j), ((demand(i,j,'Gamma')-demand(i,j,'Delta')*(sol(i,j)*10)) - c(i)*x(i))) -
+		profit .. 			z =e= -sum((i,j), ((demand(i,j,'Gamma')-demand(i,j,'Delta')*(sol(i,j)*10)) - c(i)*x(i))) +
                                   sum(k, (cost(k,'Alpha')+cost(k,'Beta')*t(k)*10)) +
                                   sum(fp, 0.2*x(fp)*40) +
                                   sum(k,s(k)*cost(k,'Alpha')) 
                                   ;
-							
 		sawMillCap.. 		sum((sm), x(sm)) =l= 200; 
  		plywoodMillCap.. 	sum((pm), x(pm)) =l= 90;
  		line1Cap..			x('HSEL') =l= 220;
  		line2Cap..			x('LSEL') =l= 180;
  		paperMillCap..		x('PAP') =l= 80;
         surPlus(k)..        t(k)*10 - sum((i,j), x(i)*ProductReq(i,k)) =e= s(k);
- 		MASproduction..		2*x('MAS') =e= t('MAT')*10;
-        KUSKUVproduction..	2*x('KUS') + 2.8*x('KUV') =e= t('KUT')*10;
-        KOSKOVproduction..	2*x('KOS') + 2.8*x('KOV') =e= t('KOT')*10;
-        HSELproduction..	4.8*x('HSEL') - 0.8*x('MAS') =e= t('MAK')*10;	
-        LSELproduction.. 	4.2*x('LSEL') - 0.8*x('KOS') - 1.6*x('KOV') =e= t('KOK')*10;
+ 		materialReq(k) ..   sum(i, ProductReq(i,k)*x(i)) =l= t(k)*10; 
         SoldLessThanProduced(i) .. sum(j, sol(i,j)) =l=  x(i)/10;
-        HSELToSell .. sum(j, sol('HSEL', j)) =l= (x('HSEL')-0.2*x('PAP'))/10;
-        LSELToSell .. sum(j, sol('LSEL', j)) =l= (x('LSEL')-0.2*x('PAP'))/10;
-        PAPproduction..		x('PAP') - 0.8*x('KUS') - 1.6*x('KUV') =e= 
-        										t('KUK') + 0.2 * (x('HSEL') + x('LSEL'));
-
-
-
+        HSELToSell .. sum(j, sol('HSEL', j)) =e= (x('HSEL')-0.2*x('PAP'))/10;
+        LSELToSell .. sum(j, sol('LSEL', j)) =e= (x('LSEL')-0.2*x('PAP'))/10;
 
 model aStaticModel /all/ ;
 
 solve aStaticModel using mip maximizing z;
 
-Display x.M, t.L, s.L;
+Display x.L, t.L, sol.L, x.M;
