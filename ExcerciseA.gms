@@ -16,7 +16,7 @@ SETS
 
         DemandParameters 'The demand parameters table 4' /Gamma, Delta/
         CostParameters 'The cost parameters table 1' /Alpha, Beta/
-        Quantities 'Possible Quantities to be sold' /1*100/;
+        Quantities 'Possible Quantities to be sold' /1*1000/;
         ;
 
 ALIAS(Products,i);
@@ -60,9 +60,9 @@ Parameters
      PAP 1700
      /
 
-    qu(q) 'Quantities';
+    qu(q) 'Quantities in 10000';
 
-qu(q) = 10*ord(q);
+qu(q) = ord(q);
 
 Table demand(i,j,dp) 'The demand parameters of the products for different markets'
             Gamma   Delta
@@ -111,11 +111,11 @@ Table cost(k,cp)  'The timber assortment cost parameters'
 
 parameter price(i,j,q);
 
-price(i,j,q) = demand(i,j, 'Gamma')-demand(i,j,'Delta')*qu(q);
+price(i,j,q) = demand(i,j, 'Gamma')-demand(i,j,'Delta')*qu(q)*10
 
 parameter purchase(k,q);
 
-purchase(k,q) = cost(k, 'Alpha')+cost(k,'Beta')*qu(q);
+purchase(k,q) = cost(k, 'Alpha')+cost(k,'Beta')*qu(q)*10;
 
 variable
     z 'max profit'
@@ -148,7 +148,7 @@ equations
         NotMoreThanOneT ''
         ;
 
-		profit .. 			z =e= sum((i,j,q), price(i,j,q)*sol(i,j,q)*ord(q)*10) - sum(i, c(i)*x(i)) +
+		profit .. 			z =e= sum((i,j,q), price(i,j,q)*sol(i,j,q)*ord(q)*10) - sum(i, c(i)*x(i)) -
                                   sum((k,q), purchase(k,q)*t(k,q)*ord(q)*10) +
                                   sum(fp, 0.2*x(fp)*40) +
                                   sum(k, cost(k,'Alpha')*y(k)) 
