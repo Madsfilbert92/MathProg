@@ -13,8 +13,10 @@ SETS
         SawMillProducts(Products) 'Products produced at the sawmill' /MAS, KUS, KOS/
         PlywoodMillProducts(Products) 'Products prodcued at plywoodmill' /KUV, KOV/
         FuelProducts(Products) 'Products producing fuel' /MAS, KUS, KOS, KUV, KOV/
+
         DemandParameters 'The demand parameters table 4' /Gamma, Delta/
         CostParameters 'The cost parameters table 1' /Alpha, Beta/
+        Quantities 'Possible Quantities to be sold' /1*100/;
         ;
 
 ALIAS(Products,i);
@@ -25,6 +27,7 @@ ALIAS(PlywoodMillProducts, pm);
 ALIAS(FuelProducts, fp);
 ALIAS(DemandParameters, dp);
 ALIAS(CostParameters, cp);
+ALIAS(Quantities, q);
 
 Table ProductReq(i,k) 'Amount of timber needed for each product'
         MAT  KUT  KOT  MAK  KUK  KOK 
@@ -43,7 +46,7 @@ Table ProductReq(i,k) 'Amount of timber needed for each product'
     
     LSEL                         4.8
     
-    PAP                     1.0                 
+    PAP                     1.0    ;               
 
 Parameters
     c(i) 'cost of making product'
@@ -55,7 +58,11 @@ Parameters
      HSEL 820,
      LSEL 800,
      PAP 1700
-     /;
+     /
+
+    qu(q) 'Quantities';
+
+qu(q) = 10*ord(q);
 
 Table demand(i,j,dp) 'The demand parameters of the products for different markets'
             Gamma   Delta
@@ -102,18 +109,26 @@ Table cost(k,cp)  'The timber assortment cost parameters'
     KOK     150     0.2    
     ;    
 
+parameter price(i,j,q);
+
+price(i,j,q) = demand(i,j, 'Gamma')-demand(i,j,'Delta')*qu(q);
+
+parameter purchase(k,q);
+
+purchase(k,q) = cost(k, 'Alpha')+cost(k,'Beta')*qu(q);
+
 variable
     z 'max profit'
     ;
 
 integer variables
      x(i)     'Produced of product i in 1000'
-     sol(i,j) 'sold product i in region j in 10000'
-     t(k)    'Timber assortment for timber k in 10000'
      s(k)    'Material surplus timber k in 1000';
 
 binary variable
-    y(k) 'if there is a surplus of material k'; 
+    y(k) 'if there is a surplus of material k'
+    sol(i,j,q) 'sold product i in region j in 10000'
+    t(k,q)    'Timber assortment for timber k in 10000';
 
 
 equations
@@ -129,10 +144,12 @@ equations
         HSELToSell      ''
         LSELToSell      ''
         IsThereSurplus  ''
+        NotMoreThanOneQuan ''
+        NotMoreThanOneT ''
         ;
 
-		profit .. 			z =e= -sum((i,j), ((demand(i,j,'Gamma')-demand(i,j,'Delta')*(sol(i,j)*10)) - c(i)*x(i))) +
-                                  sum(k, (cost(k,'Alpha')+cost(k,'Beta')*t(k)*10)) +
+		profit .. 			z =e= sum((i,j,q), price(i,j,q)*sol(i,j,q)*ord(q)*10) - sum(i, c(i)*x(i)) +
+                                  sum((k,q), purchase(k,q)*t(k,q)*ord(q)*10) +
                                   sum(fp, 0.2*x(fp)*40) +
                                   sum(k, cost(k,'Alpha')*y(k)) 
                                   ;
@@ -141,15 +158,17 @@ equations
  		line1Cap..			x('HSEL') =l= 220;
  		line2Cap..			x('LSEL') =l= 180;
  		paperMillCap..		x('PAP') =l= 80;
-        surPlus(k)..        t(k)*10 - sum((i,j), x(i)*ProductReq(i,k)) =e= s(k);
- 		materialReq(k) ..   sum(i, ProductReq(i,k)*x(i)) =l= t(k)*10; 
-        SoldLessThanProduced(i) .. sum(j, sol(i,j)) =e=  x(i)/10;
-        HSELToSell .. sum(j, sol('HSEL', j)) =e= (x('HSEL')-0.2*x('PAP'))/10;
-        LSELToSell .. sum(j, sol('LSEL', j)) =e= (x('LSEL')-0.2*x('PAP'))/10;
+        NotMoreThanOneT(k) .. sum(q, t(k,q)) =l= 1;
+        surPlus(k)..        sum(q, t(k,q)*ord(q)*10) - sum(i, x(i)*ProductReq(i,k)) =e= s(k);
+ 		materialReq(k) ..   sum(i, ProductReq(i,k)*x(i)) =l= sum(q, t(k,q)*ord(q)*10); 
+        SoldLessThanProduced(i) .. sum((j,q), sol(i,j,q)*ord(q)) =e=  x(i)/10;
+        NotMoreThanOneQuan(i,j) .. sum(q, sol(i,j,q)) =l= 1; 
+        HSELToSell .. sum((j,q), sol('HSEL', j,q)*ord(q)) =e= (x('HSEL')-0.2*x('PAP'))/10;
+        LSELToSell .. sum((j,q), sol('LSEL', j, q)*ord(q)) =e= (x('LSEL')-0.2*x('PAP'))/10;
         IsThereSurplus(k) .. s(k) =l= 1000000000000*y(k); 
 
 model aStaticModel /all/ ;
 
 solve aStaticModel using mip maximizing z;
 
-Display x.L, t.L, sol.L, x.M, s.L;
+Display x.L, t.L, sol.L, x.M, s.L, y.L;
