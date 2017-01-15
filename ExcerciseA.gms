@@ -106,6 +106,7 @@ Table cost(k,cp)  'The timber assortment cost parameters'
     KUK     150     0.3
     KOK     150     0.2    
     ;    
+Scalar M 'big M used for sales constraint'/10000/;
 
 variable
     z 'max profit'
@@ -115,6 +116,10 @@ positive variables
     t(k)    'Timber assortment for timber k'
     s(k)    'Material surplus timber k'
     ; 
+Binary variable
+//OBS VIRKER IKKE RIGTIGT!
+    y(i,j)  '10.000 product i allows for sales in region j'
+    ;
         
 equations
         profit 			'objective function'
@@ -130,9 +135,10 @@ equations
         HSELproduction	''
         LSELproduction	''
         PAPproduction	''
+        salesConstraint(i) ''
         ;
 
-		profit .. 			z =e= sum((i,j), ((demand(i,j,'Gamma')-demand(i,j,'Delta')*x(i,j)) - c(i)*x(i,j))) -
+		profit .. 			z =e= sum((i,j), ((y(i,j)*demand(i,j,'Gamma')-demand(i,j,'Delta')*x(i,j)) - c(i)*x(i,j))) -
                                   sum(k, (cost(k,'Alpha')+cost(k,'Beta')*t(k))) +
                                   sum((fp,j), 0.2*x(fp,j)*40) +
                                   sum(k,s(k)*cost(k,'Alpha')) 
@@ -144,13 +150,15 @@ equations
  		line2Cap..			sum(j, x('LSEL',j)) =l= 180;
  		paperMillCap..		sum(j, x('PAP',j)) =l= 80;
         surPlus(k)..        t(k) - sum((i,j), x(i,j)*ProductReq(i,k)) =e= s(k);
- 		MASproduction..		sum(j, 2*x('MAS',j)) =l= t('MAT');
-        KUSKUVproduction..	sum(j, 2*x('KUS',j) + 2.8*x('KUV',j)) =l= t('KUT');
-        KOSKOVproduction..	sum(j, 2*x('KOS',j) + 2.8*x('KOV',j)) =l= t('KOT');
-        HSELproduction..	sum(j, 4.8*x('HSEL',j) - 0.8*x('MAS',j)) =l= t('MAK');	
-        LSELproduction.. 	sum(j, 4.2*x('LSEL',j) - 0.8*x('KOS',j) - 1.6*x('KOV',j)) =l= t('KOK');
-        PAPproduction..		sum(j, x('PAP',j) - 0.8*x('KUS',j) - 1.6*x('KUV',j)) =l= 
+ 		MASproduction..		sum(j, 2*x('MAS',j)) =e= t('MAT');
+        KUSKUVproduction..	sum(j, 2*x('KUS',j) + 2.8*x('KUV',j)) =e= t('KUT');
+        KOSKOVproduction..	sum(j, 2*x('KOS',j) + 2.8*x('KOV',j)) =e= t('KOT');
+        HSELproduction..	sum(j, 4.8*x('HSEL',j) - 0.8*x('MAS',j)) =e= t('MAK');	
+        LSELproduction.. 	sum(j, 4.2*x('LSEL',j) - 0.8*x('KOS',j) - 1.6*x('KOV',j)) =e= t('KOK');
+        PAPproduction..		sum(j, x('PAP',j) - 0.8*x('KUS',j) - 1.6*x('KUV',j)) =e= 
         										t('KUK') + 0.2 * sum(j,x('HSEL',j) + x('LSEL',j));
+        //OBS VIRKER IKKE RIGTIGT.
+        salesConstraint(i)..   sum(j, x(i,j)) - 10.000 =g= M * sum(j, y(i,j));
 
 
 
@@ -159,4 +167,4 @@ model aStaticModel /all/ ;
 
 solve aStaticModel using mip maximizing z;
 
-Display x.L, t.L, s.L;
+Display x.L, t.L, s.L, y.L;
