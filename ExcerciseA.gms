@@ -110,12 +110,12 @@ Table cost(k,cp)  'The timber assortment cost parameters'
 variable
     z 'max profit'
     ;
-positive variables
-    x(i)     'Produced of product i'
-    sol(i,j) 'sold product i'
-    t(k)    'Timber assortment for timber k'
-    s(k)    'Material surplus timber k'
-    ; 
+
+Integer variables
+     x(i)     'Produced of product i in 1000'
+     sol(i,j) 'sold product i in region j in 10000'
+     t(k)    'Timber assortment for timber k in 10000'
+     s(k)    'Material surplus timber k in 1000';
         
 equations
         profit 			'objective function'
@@ -131,27 +131,33 @@ equations
         HSELproduction	''
         LSELproduction	''
         PAPproduction	''
+        SoldLessThanProduced ''
+        HSELToSell      ''
+        LSELToSell      ''
         ;
 
-		profit .. 			z =e= sum((i,j), ((demand(i,j,'Gamma')-demand(i,j,'Delta')*sol(i,j)) - c(i)*x(i))) -
-                                  sum(k, (cost(k,'Alpha')+cost(k,'Beta')*t(k))) +
-                                  sum((fp,j), 0.2*x(fp)*40) +
+		profit .. 			z =e= sum((i,j), ((demand(i,j,'Gamma')-demand(i,j,'Delta')*(sol(i,j)*10)) - c(i)*x(i))) -
+                                  sum(k, (cost(k,'Alpha')+cost(k,'Beta')*t(k)*10)) +
+                                  sum(fp, 0.2*x(fp)*40) +
                                   sum(k,s(k)*cost(k,'Alpha')) 
                                   ;
 							
-		sawMillCap.. 		sum((sm,j), x(sm) =l= 200; 
- 		plywoodMillCap.. 	sum((pm,j), x(pm) =l= 90;
- 		line1Cap..			sum(j, x('HSEL') =l= 220;
- 		line2Cap..			sum(j, x('LSEL') =l= 180;
- 		paperMillCap..		sum(j, x('PAP') =l= 80;
-        surPlus(k)..        t(k) - sum((i,j), x(i)*ProductReq(i,k)) =e= s(k);
- 		MASproduction..		sum(j, 2*x('MAS') =e= t('MAT');
-        KUSKUVproduction..	sum(j, 2*x('KUS') + 2.8*x('KUV',j)) =e= t('KUT');
-        KOSKOVproduction..	sum(j, 2*x('KOS') + 2.8*x('KOV',j)) =e= t('KOT');
-        HSELproduction..	sum(j, 4.8*x('HSEL') - 0.8*x('MAS') =e= t('MAK');	
-        LSELproduction.. 	sum(j, 4.2*x('LSEL') - 0.8*x('KOS') - 1.6*x('KOV',j)) =e= t('KOK');
-        PAPproduction..		sum(j, x('PAP',j) - 0.8*x('KUS') - 1.6*x('KUV',j)) =e= 
-        										t('KUK') + 0.2 * sum(j,x('HSEL',j) + x('LSEL',j));
+		sawMillCap.. 		sum((sm), x(sm)) =l= 200; 
+ 		plywoodMillCap.. 	sum((pm), x(pm)) =l= 90;
+ 		line1Cap..			x('HSEL') =l= 220;
+ 		line2Cap..			x('LSEL') =l= 180;
+ 		paperMillCap..		x('PAP') =l= 80;
+        surPlus(k)..        t(k)*10 - sum((i,j), x(i)*ProductReq(i,k)) =e= s(k);
+ 		MASproduction..		2*x('MAS') =e= t('MAT')*10;
+        KUSKUVproduction..	2*x('KUS') + 2.8*x('KUV') =e= t('KUT')*10;
+        KOSKOVproduction..	2*x('KOS') + 2.8*x('KOV') =e= t('KOT')*10;
+        HSELproduction..	4.8*x('HSEL') - 0.8*x('MAS') =e= t('MAK')*10;	
+        LSELproduction.. 	4.2*x('LSEL') - 0.8*x('KOS') - 1.6*x('KOV') =e= t('KOK')*10;
+        SoldLessThanProduced(i) .. sum(j, sol(i,j)) =l=  x(i)/10;
+        HSELToSell .. sum(j, sol('HSEL', j)) =l= (x('HSEL')-0.2*x('PAP'))/10;
+        LSELToSell .. sum(j, sol('LSEL', j)) =l= (x('LSEL')-0.2*x('PAP'))/10;
+        PAPproduction..		x('PAP') - 0.8*x('KUS') - 1.6*x('KUV') =e= 
+        										t('KUK') + 0.2 * (x('HSEL') + x('LSEL'));
 
 
 

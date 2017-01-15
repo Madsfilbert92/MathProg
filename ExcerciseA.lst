@@ -1,4 +1,4 @@
-GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      01/14/17 12:55:31 Page 1
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      01/15/17 10:52:51 Page 1
 G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
 C o m p i l a t i o n
 
@@ -56,7 +56,7 @@ C o m p i l a t i o n
   52   
   53  Parameters
   54      c(i) 'cost of making product'
-GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      01/14/17 12:55:31 Page 2
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      01/15/17 10:52:51 Page 2
 G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
 C o m p i l a t i o n
 
@@ -114,7 +114,7 @@ C o m p i l a t i o n
  105      MAK     180     0.2
  106      KUK     150     0.3
  107      KOK     150     0.2
-GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      01/14/17 12:55:31 Page 3
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      01/15/17 10:52:51 Page 3
 G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
 C o m p i l a t i o n
 
@@ -124,156 +124,196 @@ C o m p i l a t i o n
  110  variable
  111      z 'max profit'
  112      ;
- 113  positive variables
- 114      x(i,j)  'Product i for region j'
- 115      t(k)    'Timber assortment for timber k'
- 116      s(k)    'Material surplus timber k'
- 117      ;
- 118   
- 119  equations
- 120          profit                  'objective function'
- 121          sawMillCap              ''
- 122          plywoodMillCap  ''
- 123          line1Cap                ''
- 124          line2Cap                ''
- 125          paperMillCap    ''
- 126          surPlus(k)              ''
- 127          MASproduction   ''
- 128          KUSKUVproduction        ''
- 129          KOSKOVproduction        ''
- 130          HSELproduction  ''
- 131          LSELproduction  ''
- 132          PAPproduction   ''
- 133          ;
- 134   
- 135                  profit ..                       z =e= sum((i,j), ((demand(i,j,'Gamma')-demand(i,j,'Delta')*x(i,j)) - c(i)*x(i,j))) -
- 136                                    sum(k, (cost(k,'Alpha')+cost(k,'Beta')*t(k))) +
- 137                                    sum((fp,j), 0.2*x(fp,j)*40) +
- 138                                    sum(k,s(k)*cost(k,'Alpha'))
- 139                                    ;
- 140   
- 141                  sawMillCap..            sum((sm,j), x(sm,j)) =l= 200;
- 142                  plywoodMillCap..        sum((pm,j), x(pm,j)) =l= 90;
- 143                  line1Cap..                      sum(j, x('HSEL',j)) =l= 220;
- 144                  line2Cap..                      sum(j, x('LSEL',j)) =l= 180;
- 145                  paperMillCap..          sum(j, x('PAP',j)) =l= 80;
- 146          surPlus(k)..        t(k) - sum((i,j), x(i,j)*ProductReq(i,k)) =e= s(k);
- 147                  MASproduction..         sum(j, 2*x('MAS',j)) =e= t('MAT');
- 148          KUSKUVproduction..      sum(j, 2*x('KUS',j) + 2.8*x('KUV',j)) =e= t('KUT');
- 149          KOSKOVproduction..      sum(j, 2*x('KOS',j) + 2.8*x('KOV',j)) =e= t('KOT');
- 150          HSELproduction..        sum(j, 4.8*x('HSEL',j) - 0.8*x('MAS',j)) =e= t('MAK');
- 151          LSELproduction..        sum(j, 4.2*x('LSEL',j) - 0.8*x('KOS',j) - 1.6*x('KOV',j)) =e= t('KOK');
- 152          PAPproduction..         sum(j, x('PAP',j) - 0.8*x('KUS',j) - 1.6*x('KUV',j)) =e=
- 153                                                                                          t('KUK') + 0.2 * sum(j,x('HSEL',j) + x('LSEL',j));
- 154   
- 155   
- 156   
- 157   
- 158  model aStaticModel /all/ ;
- 159   
- 160  solve aStaticModel using mip maximizing z;
-GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      01/14/17 12:55:31 Page 4
+ 113   
+ 114  Integer variables
+ 115       x(i)     'Produced of product i in 1000'
+ 116       sol(i,j) 'sold product i in region j in 10000'
+ 117       t(k)    'Timber assortment for timber k in 10000'
+ 118       s(k)    'Material surplus timber k in 1000';
+ 119   
+ 120  equations
+ 121          profit                  'objective function'
+ 122          sawMillCap              ''
+ 123          plywoodMillCap  ''
+ 124          line1Cap                ''
+ 125          line2Cap                ''
+ 126          paperMillCap    ''
+ 127          surPlus(k)              ''
+ 128          MASproduction   ''
+ 129          KUSKUVproduction        ''
+ 130          KOSKOVproduction        ''
+ 131          HSELproduction  ''
+ 132          LSELproduction  ''
+ 133          PAPproduction   ''
+ 134          SoldLessThanProduced ''
+ 135          HSELToSell      ''
+ 136          LSELToSell      ''
+ 137          ;
+ 138   
+ 139                  profit ..                       z =e= sum((i,j), ((demand(i,j,'Gamma')-demand(i,j,'Delta')*(sol(i,j)*10)) - c(i)*x(i))) -
+ 140                                    sum(k, (cost(k,'Alpha')+cost(k,'Beta')*t(k)*10)) +
+ 141                                    sum(fp, 0.2*x(fp)*40) +
+ 142                                    sum(k,s(k)*cost(k,'Alpha'))
+ 143                                    ;
+ 144   
+ 145                  sawMillCap..            sum((sm), x(sm)) =l= 200;
+ 146                  plywoodMillCap..        sum((pm), x(pm)) =l= 90;
+ 147                  line1Cap..                      x('HSEL') =l= 220;
+ 148                  line2Cap..                      x('LSEL') =l= 180;
+ 149                  paperMillCap..          x('PAP') =l= 80;
+ 150          surPlus(k)..        t(k)*10 - sum((i,j), x(i)*ProductReq(i,k)) =e= s(k);
+ 151                  MASproduction..         2*x('MAS') =e= t('MAT')*10;
+ 152          KUSKUVproduction..      2*x('KUS') + 2.8*x('KUV') =e= t('KUT')*10;
+ 153          KOSKOVproduction..      2*x('KOS') + 2.8*x('KOV') =e= t('KOT')*10;
+ 154          HSELproduction..        4.8*x('HSEL') - 0.8*x('MAS') =e= t('MAK')*10;
+ 155          LSELproduction..        4.2*x('LSEL') - 0.8*x('KOS') - 1.6*x('KOV') =e= t('KOK')*10;
+ 156          SoldLessThanProduced(i) .. sum(j, sol(i,j)) =l=  x(i)/10;
+ 157          HSELToSell .. sum(j, sol('HSEL', j)) =l= (x('HSEL')-0.2*x('PAP'))/10;
+ 158          LSELToSell .. sum(j, sol('LSEL', j)) =l= (x('LSEL')-0.2*x('PAP'))/10;
+ 159          PAPproduction..         x('PAP') - 0.8*x('KUS') - 1.6*x('KUV') =e=
+ 160                                                                                          t('KUK') + 0.2 * (x('HSEL') + x('LSEL'));
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      01/15/17 10:52:51 Page 4
 G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
 C o m p i l a t i o n
 
 
  161   
- 162  Display x.M, t.L, s.L;
+ 162   
+ 163   
+ 164   
+ 165  model aStaticModel /all/ ;
+ 166   
+ 167  solve aStaticModel using mip maximizing z;
+ 168   
+ 169  Display x.M, t.L, s.L;
 
 
 COMPILATION TIME     =        0.002 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
-GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      01/14/17 12:55:31 Page 5
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      01/15/17 10:52:51 Page 5
 G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
-Equation Listing    SOLVE aStaticModel Using MIP From line 160
+Equation Listing    SOLVE aStaticModel Using MIP From line 167
 
 
 ---- profit  =E=  objective function
 
-profit..  z + 546*x(MAS,EU) + 552*x(MAS,IE) + 554*x(MAS,PA) + 557*x(MAS,KI) + 496*x(KUS,EU) + 502*x(KUS,IE) + 504*x(KUS,PA) + 507*x(KUS,KI) + 456*x(KOS,EU) + 462*x(KOS,IE) + 464*x(KOS,PA) + 467*x(KOS,KI) + 2496*x(KUV,EU) + 2502*x(KUV,IE) + 2504*x(KUV,PA)
+profit..  z + 2192*x(MAS) + 1992*x(KUS) + 1792*x(KOS) + 9992*x(KUV) + 10392*x(KOV) + 3280*x(HSEL) + 3200*x(LSEL) + 6800*x(PAP) + 40*sol(MAS,EU) + 100*sol(MAS,IE) + 120*sol(MAS,PA) + 150*sol(MAS,KI) + 40*sol(KUS,EU) + 100*sol(KUS,IE) + 120*sol(KUS,PA)
      
-      + 2507*x(KUV,KI) + 2596*x(KOV,EU) + 2602*x(KOV,IE) + 2604*x(KOV,PA) + 2607*x(KOV,KI) + 822*x(HSEL,EU) + 824*x(HSEL,IE) + 825*x(HSEL,PA) + 826*x(HSEL,KI) + 803*x(LSEL,EU) + 802*x(LSEL,IE) + 805*x(LSEL,PA) + 807*x(LSEL,KI) + 1704*x(PAP,EU)
+      + 150*sol(KUS,KI) + 140*sol(KOS,EU) + 200*sol(KOS,IE) + 220*sol(KOS,PA) + 250*sol(KOS,KI) + 40*sol(KUV,EU) + 100*sol(KUV,IE) + 120*sol(KUV,PA) + 150*sol(KUV,KI) + 40*sol(KOV,EU) + 100*sol(KOV,IE) + 120*sol(KOV,PA) + 150*sol(KOV,KI) + 20*sol(HSEL,EU)
      
-      + 1710*x(PAP,IE) + 1712*x(PAP,PA) + 1715*x(PAP,KI) + t(MAT) + 0.5*t(KUT) + 3*t(KOT) + 0.2*t(MAK) + 0.3*t(KUK) + 0.2*t(KOK) - 190*s(MAT) - 150*s(KUT) - 120*s(KOT) - 180*s(MAK) - 150*s(KUK) - 150*s(KOK) =E= 85460 ; (LHS = 0, INFES = 85460 ****)
+      + 40*sol(HSEL,IE) + 50*sol(HSEL,PA) + 60*sol(HSEL,KI) + 30*sol(LSEL,EU) + 20*sol(LSEL,IE) + 50*sol(LSEL,PA) + 70*sol(LSEL,KI) + 40*sol(PAP,EU) + 100*sol(PAP,IE) + 120*sol(PAP,PA) + 150*sol(PAP,KI) + 10*t(MAT) + 5*t(KUT) + 30*t(KOT) + 2*t(MAK)
+     
+      + 3*t(KUK) + 2*t(KOK) - 190*s(MAT) - 150*s(KUT) - 120*s(KOT) - 180*s(MAK) - 150*s(KUK) - 150*s(KOK) =E= 85460 ; (LHS = 0, INFES = 85460 ****)
      
 
 ---- sawMillCap  =L=  
 
-sawMillCap..  x(MAS,EU) + x(MAS,IE) + x(MAS,PA) + x(MAS,KI) + x(KUS,EU) + x(KUS,IE) + x(KUS,PA) + x(KUS,KI) + x(KOS,EU) + x(KOS,IE) + x(KOS,PA) + x(KOS,KI) =L= 200 ; (LHS = 0)
+sawMillCap..  x(MAS) + x(KUS) + x(KOS) =L= 200 ; (LHS = 0)
      
 
 ---- plywoodMillCap  =L=  
 
-plywoodMillCap..  x(KUV,EU) + x(KUV,IE) + x(KUV,PA) + x(KUV,KI) + x(KOV,EU) + x(KOV,IE) + x(KOV,PA) + x(KOV,KI) =L= 90 ; (LHS = 0)
+plywoodMillCap..  x(KUV) + x(KOV) =L= 90 ; (LHS = 0)
      
 
 ---- line1Cap  =L=  
 
-line1Cap..  x(HSEL,EU) + x(HSEL,IE) + x(HSEL,PA) + x(HSEL,KI) =L= 220 ; (LHS = 0)
+line1Cap..  x(HSEL) =L= 220 ; (LHS = 0)
      
 
 ---- line2Cap  =L=  
 
-line2Cap..  x(LSEL,EU) + x(LSEL,IE) + x(LSEL,PA) + x(LSEL,KI) =L= 180 ; (LHS = 0)
+line2Cap..  x(LSEL) =L= 180 ; (LHS = 0)
      
 
 ---- paperMillCap  =L=  
 
-paperMillCap..  x(PAP,EU) + x(PAP,IE) + x(PAP,PA) + x(PAP,KI) =L= 80 ; (LHS = 0)
+paperMillCap..  x(PAP) =L= 80 ; (LHS = 0)
      
 
 ---- surPlus  =E=  
 
-surPlus(MAT)..  - 2*x(MAS,EU) - 2*x(MAS,IE) - 2*x(MAS,PA) - 2*x(MAS,KI) + t(MAT) - s(MAT) =E= 0 ; (LHS = 0)
+surPlus(MAT)..  - 8*x(MAS) + 10*t(MAT) - s(MAT) =E= 0 ; (LHS = 0)
      
-surPlus(KUT)..  - 2*x(KUS,EU) - 2*x(KUS,IE) - 2*x(KUS,PA) - 2*x(KUS,KI) - 2.8*x(KUV,EU) - 2.8*x(KUV,IE) - 2.8*x(KUV,PA) - 2.8*x(KUV,KI) + t(KUT) - s(KUT) =E= 0 ; (LHS = 0)
+surPlus(KUT)..  - 8*x(KUS) - 11.2*x(KUV) + 10*t(KUT) - s(KUT) =E= 0 ; (LHS = 0)
      
-surPlus(KOT)..  - 2*x(KOS,EU) - 2*x(KOS,IE) - 2*x(KOS,PA) - 2*x(KOS,KI) - 2.8*x(KOV,EU) - 2.8*x(KOV,IE) - 2.8*x(KOV,PA) - 2.8*x(KOV,KI) + t(KOT) - s(KOT) =E= 0 ; (LHS = 0)
+surPlus(KOT)..  - 8*x(KOS) - 11.2*x(KOV) + 10*t(KOT) - s(KOT) =E= 0 ; (LHS = 0)
      
-surPlus(MAK)..  0.8*x(MAS,EU) + 0.8*x(MAS,IE) + 0.8*x(MAS,PA) + 0.8*x(MAS,KI) - 4.8*x(HSEL,EU) - 4.8*x(HSEL,IE) - 4.8*x(HSEL,PA) - 4.8*x(HSEL,KI) + t(MAK) - s(MAK) =E= 0 ; (LHS = 0)
+surPlus(MAK)..  3.2*x(MAS) - 19.2*x(HSEL) + 10*t(MAK) - s(MAK) =E= 0 ; (LHS = 0)
      
-surPlus(KUK)..  0.8*x(KUS,EU) + 0.8*x(KUS,IE) + 0.8*x(KUS,PA) + 0.8*x(KUS,KI) + 1.6*x(KUV,EU) + 1.6*x(KUV,IE) + 1.6*x(KUV,PA) + 1.6*x(KUV,KI) - x(PAP,EU) - x(PAP,IE) - x(PAP,PA) - x(PAP,KI) + t(KUK) - s(KUK) =E= 0 ; (LHS = 0)
+surPlus(KUK)..  3.2*x(KUS) + 6.4*x(KUV) - 4*x(PAP) + 10*t(KUK) - s(KUK) =E= 0 ; (LHS = 0)
      
-surPlus(KOK)..  0.8*x(KOS,EU) + 0.8*x(KOS,IE) + 0.8*x(KOS,PA) + 0.8*x(KOS,KI) + 1.6*x(KOV,EU) + 1.6*x(KOV,IE) + 1.6*x(KOV,PA) + 1.6*x(KOV,KI) - 4.8*x(LSEL,EU) - 4.8*x(LSEL,IE) - 4.8*x(LSEL,PA) - 4.8*x(LSEL,KI) + t(KOK) - s(KOK) =E= 0 ; (LHS = 0)
+surPlus(KOK)..  3.2*x(KOS) + 6.4*x(KOV) - 19.2*x(LSEL) + 10*t(KOK) - s(KOK) =E= 0 ; (LHS = 0)
      
-GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      01/14/17 12:55:31 Page 6
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      01/15/17 10:52:51 Page 6
 G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
-Equation Listing    SOLVE aStaticModel Using MIP From line 160
+Equation Listing    SOLVE aStaticModel Using MIP From line 167
 
 
 ---- MASproduction  =E=  
 
-MASproduction..  2*x(MAS,EU) + 2*x(MAS,IE) + 2*x(MAS,PA) + 2*x(MAS,KI) - t(MAT) =E= 0 ; (LHS = 0)
+MASproduction..  2*x(MAS) - 10*t(MAT) =E= 0 ; (LHS = 0)
      
 
 ---- KUSKUVproduction  =E=  
 
-KUSKUVproduction..  2*x(KUS,EU) + 2*x(KUS,IE) + 2*x(KUS,PA) + 2*x(KUS,KI) + 2.8*x(KUV,EU) + 2.8*x(KUV,IE) + 2.8*x(KUV,PA) + 2.8*x(KUV,KI) - t(KUT) =E= 0 ; (LHS = 0)
+KUSKUVproduction..  2*x(KUS) + 2.8*x(KUV) - 10*t(KUT) =E= 0 ; (LHS = 0)
      
 
 ---- KOSKOVproduction  =E=  
 
-KOSKOVproduction..  2*x(KOS,EU) + 2*x(KOS,IE) + 2*x(KOS,PA) + 2*x(KOS,KI) + 2.8*x(KOV,EU) + 2.8*x(KOV,IE) + 2.8*x(KOV,PA) + 2.8*x(KOV,KI) - t(KOT) =E= 0 ; (LHS = 0)
+KOSKOVproduction..  2*x(KOS) + 2.8*x(KOV) - 10*t(KOT) =E= 0 ; (LHS = 0)
      
 
 ---- HSELproduction  =E=  
 
-HSELproduction..  - 0.8*x(MAS,EU) - 0.8*x(MAS,IE) - 0.8*x(MAS,PA) - 0.8*x(MAS,KI) + 4.8*x(HSEL,EU) + 4.8*x(HSEL,IE) + 4.8*x(HSEL,PA) + 4.8*x(HSEL,KI) - t(MAK) =E= 0 ; (LHS = 0)
+HSELproduction..  - 0.8*x(MAS) + 4.8*x(HSEL) - 10*t(MAK) =E= 0 ; (LHS = 0)
      
 
 ---- LSELproduction  =E=  
 
-LSELproduction..  - 0.8*x(KOS,EU) - 0.8*x(KOS,IE) - 0.8*x(KOS,PA) - 0.8*x(KOS,KI) - 1.6*x(KOV,EU) - 1.6*x(KOV,IE) - 1.6*x(KOV,PA) - 1.6*x(KOV,KI) + 4.2*x(LSEL,EU) + 4.2*x(LSEL,IE) + 4.2*x(LSEL,PA) + 4.2*x(LSEL,KI) - t(KOK) =E= 0 ; (LHS = 0)
+LSELproduction..  - 0.8*x(KOS) - 1.6*x(KOV) + 4.2*x(LSEL) - 10*t(KOK) =E= 0 ; (LHS = 0)
      
 
 ---- PAPproduction  =E=  
 
-PAPproduction..  - 0.8*x(KUS,EU) - 0.8*x(KUS,IE) - 0.8*x(KUS,PA) - 0.8*x(KUS,KI) - 1.6*x(KUV,EU) - 1.6*x(KUV,IE) - 1.6*x(KUV,PA) - 1.6*x(KUV,KI) - 0.2*x(HSEL,EU) - 0.2*x(HSEL,IE) - 0.2*x(HSEL,PA) - 0.2*x(HSEL,KI) - 0.2*x(LSEL,EU) - 0.2*x(LSEL,IE)
+PAPproduction..  - 0.8*x(KUS) - 1.6*x(KUV) - 0.2*x(HSEL) - 0.2*x(LSEL) + x(PAP) - t(KUK) =E= 0 ; (LHS = 0)
      
-      - 0.2*x(LSEL,PA) - 0.2*x(LSEL,KI) + x(PAP,EU) + x(PAP,IE) + x(PAP,PA) + x(PAP,KI) - t(KUK) =E= 0 ; (LHS = 0)
+
+---- SoldLessThanProduced  =L=  
+
+SoldLessThanProduced(MAS)..  - 0.1*x(MAS) + sol(MAS,EU) + sol(MAS,IE) + sol(MAS,PA) + sol(MAS,KI) =L= 0 ; (LHS = 0)
      
-GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      01/14/17 12:55:31 Page 7
+SoldLessThanProduced(KUS)..  - 0.1*x(KUS) + sol(KUS,EU) + sol(KUS,IE) + sol(KUS,PA) + sol(KUS,KI) =L= 0 ; (LHS = 0)
+     
+SoldLessThanProduced(KOS)..  - 0.1*x(KOS) + sol(KOS,EU) + sol(KOS,IE) + sol(KOS,PA) + sol(KOS,KI) =L= 0 ; (LHS = 0)
+     
+SoldLessThanProduced(KUV)..  - 0.1*x(KUV) + sol(KUV,EU) + sol(KUV,IE) + sol(KUV,PA) + sol(KUV,KI) =L= 0 ; (LHS = 0)
+     
+SoldLessThanProduced(KOV)..  - 0.1*x(KOV) + sol(KOV,EU) + sol(KOV,IE) + sol(KOV,PA) + sol(KOV,KI) =L= 0 ; (LHS = 0)
+     
+SoldLessThanProduced(HSEL)..  - 0.1*x(HSEL) + sol(HSEL,EU) + sol(HSEL,IE) + sol(HSEL,PA) + sol(HSEL,KI) =L= 0 ; (LHS = 0)
+     
+SoldLessThanProduced(LSEL)..  - 0.1*x(LSEL) + sol(LSEL,EU) + sol(LSEL,IE) + sol(LSEL,PA) + sol(LSEL,KI) =L= 0 ; (LHS = 0)
+     
+SoldLessThanProduced(PAP)..  - 0.1*x(PAP) + sol(PAP,EU) + sol(PAP,IE) + sol(PAP,PA) + sol(PAP,KI) =L= 0 ; (LHS = 0)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      01/15/17 10:52:51 Page 7
 G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
-Column Listing      SOLVE aStaticModel Using MIP From line 160
+Equation Listing    SOLVE aStaticModel Using MIP From line 167
+
+
+---- HSELToSell  =L=  
+
+HSELToSell..  - 0.1*x(HSEL) + 0.02*x(PAP) + sol(HSEL,EU) + sol(HSEL,IE) + sol(HSEL,PA) + sol(HSEL,KI) =L= 0 ; (LHS = 0)
+     
+
+---- LSELToSell  =L=  
+
+LSELToSell..  - 0.1*x(LSEL) + 0.02*x(PAP) + sol(LSEL,EU) + sol(LSEL,IE) + sol(LSEL,PA) + sol(LSEL,KI) =L= 0 ; (LHS = 0)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      01/15/17 10:52:51 Page 8
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Column Listing      SOLVE aStaticModel Using MIP From line 167
 
 
 ---- z  max profit
@@ -283,437 +323,430 @@ z
         1       profit
 
 
----- x  Product i for region j
+---- x  Produced of product i in 1000
 
-x(MAS,EU)
-                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
-      546       profit
+x(MAS)
+                (.LO, .L, .UP, .M = 0, 0, 100, 0)
+     2192       profit
         1       sawMillCap
-       -2       surPlus(MAT)
-        0.8     surPlus(MAK)
+       -8       surPlus(MAT)
+        3.2     surPlus(MAK)
         2       MASproduction
        -0.8     HSELproduction
+       -0.1     SoldLessThanProduced(MAS)
 
-x(MAS,IE)
-                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
-      552       profit
+x(KUS)
+                (.LO, .L, .UP, .M = 0, 0, 100, 0)
+     1992       profit
         1       sawMillCap
-       -2       surPlus(MAT)
-        0.8     surPlus(MAK)
-        2       MASproduction
-       -0.8     HSELproduction
-
-x(MAS,PA)
-                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
-      554       profit
-        1       sawMillCap
-       -2       surPlus(MAT)
-        0.8     surPlus(MAK)
-        2       MASproduction
-       -0.8     HSELproduction
-
-x(MAS,KI)
-                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
-      557       profit
-        1       sawMillCap
-       -2       surPlus(MAT)
-        0.8     surPlus(MAK)
-        2       MASproduction
-       -0.8     HSELproduction
-
-x(KUS,EU)
-                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
-      496       profit
-        1       sawMillCap
-       -2       surPlus(KUT)
-        0.8     surPlus(KUK)
+       -8       surPlus(KUT)
+        3.2     surPlus(KUK)
         2       KUSKUVproduction
        -0.8     PAPproduction
-GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      01/14/17 12:55:31 Page 8
-G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
-Column Listing      SOLVE aStaticModel Using MIP From line 160
+       -0.1     SoldLessThanProduced(KUS)
 
-
-     x  Product i for region j
-
-
-x(KUS,IE)
-                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
-      502       profit
+x(KOS)
+                (.LO, .L, .UP, .M = 0, 0, 100, 0)
+     1792       profit
         1       sawMillCap
-       -2       surPlus(KUT)
-        0.8     surPlus(KUK)
-        2       KUSKUVproduction
-       -0.8     PAPproduction
-
-x(KUS,PA)
-                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
-      504       profit
-        1       sawMillCap
-       -2       surPlus(KUT)
-        0.8     surPlus(KUK)
-        2       KUSKUVproduction
-       -0.8     PAPproduction
-
-x(KUS,KI)
-                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
-      507       profit
-        1       sawMillCap
-       -2       surPlus(KUT)
-        0.8     surPlus(KUK)
-        2       KUSKUVproduction
-       -0.8     PAPproduction
-
-x(KOS,EU)
-                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
-      456       profit
-        1       sawMillCap
-       -2       surPlus(KOT)
-        0.8     surPlus(KOK)
+       -8       surPlus(KOT)
+        3.2     surPlus(KOK)
         2       KOSKOVproduction
        -0.8     LSELproduction
+       -0.1     SoldLessThanProduced(KOS)
 
-x(KOS,IE)
-                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
-      462       profit
-        1       sawMillCap
-       -2       surPlus(KOT)
-        0.8     surPlus(KOK)
-        2       KOSKOVproduction
-       -0.8     LSELproduction
-
-x(KOS,PA)
-                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
-      464       profit
-        1       sawMillCap
-       -2       surPlus(KOT)
-GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      01/14/17 12:55:31 Page 9
-G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
-Column Listing      SOLVE aStaticModel Using MIP From line 160
-
-
-     x  Product i for region j
-
-        0.8     surPlus(KOK)
-        2       KOSKOVproduction
-       -0.8     LSELproduction
-
-x(KOS,KI)
-                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
-      467       profit
-        1       sawMillCap
-       -2       surPlus(KOT)
-        0.8     surPlus(KOK)
-        2       KOSKOVproduction
-       -0.8     LSELproduction
-
-x(KUV,EU)
-                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
-     2496       profit
+x(KUV)
+                (.LO, .L, .UP, .M = 0, 0, 100, 0)
+     9992       profit
         1       plywoodMillCap
-       -2.8     surPlus(KUT)
-        1.6     surPlus(KUK)
+      -11.2     surPlus(KUT)
+        6.4     surPlus(KUK)
         2.8     KUSKUVproduction
        -1.6     PAPproduction
+       -0.1     SoldLessThanProduced(KUV)
 
-x(KUV,IE)
-                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
-     2502       profit
+x(KOV)
+                (.LO, .L, .UP, .M = 0, 0, 100, 0)
+    10392       profit
         1       plywoodMillCap
-       -2.8     surPlus(KUT)
-        1.6     surPlus(KUK)
-        2.8     KUSKUVproduction
-       -1.6     PAPproduction
-
-x(KUV,PA)
-                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
-     2504       profit
-        1       plywoodMillCap
-       -2.8     surPlus(KUT)
-        1.6     surPlus(KUK)
-        2.8     KUSKUVproduction
-       -1.6     PAPproduction
-
-x(KUV,KI)
-                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
-     2507       profit
-        1       plywoodMillCap
-       -2.8     surPlus(KUT)
-        1.6     surPlus(KUK)
-        2.8     KUSKUVproduction
-       -1.6     PAPproduction
-
-x(KOV,EU)
-                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
-GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     01/14/17 12:55:31 Page 10
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      01/15/17 10:52:51 Page 9
 G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
-Column Listing      SOLVE aStaticModel Using MIP From line 160
+Column Listing      SOLVE aStaticModel Using MIP From line 167
 
 
-     x  Product i for region j
+     x  Produced of product i in 1000
 
-     2596       profit
-        1       plywoodMillCap
-       -2.8     surPlus(KOT)
-        1.6     surPlus(KOK)
+      -11.2     surPlus(KOT)
+        6.4     surPlus(KOK)
         2.8     KOSKOVproduction
        -1.6     LSELproduction
+       -0.1     SoldLessThanProduced(KOV)
 
-x(KOV,IE)
-                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
-     2602       profit
-        1       plywoodMillCap
-       -2.8     surPlus(KOT)
-        1.6     surPlus(KOK)
-        2.8     KOSKOVproduction
-       -1.6     LSELproduction
-
-x(KOV,PA)
-                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
-     2604       profit
-        1       plywoodMillCap
-       -2.8     surPlus(KOT)
-        1.6     surPlus(KOK)
-        2.8     KOSKOVproduction
-       -1.6     LSELproduction
-
-x(KOV,KI)
-                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
-     2607       profit
-        1       plywoodMillCap
-       -2.8     surPlus(KOT)
-        1.6     surPlus(KOK)
-        2.8     KOSKOVproduction
-       -1.6     LSELproduction
-
-x(HSEL,EU)
-                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
-      822       profit
+x(HSEL)
+                (.LO, .L, .UP, .M = 0, 0, 100, 0)
+     3280       profit
         1       line1Cap
-       -4.8     surPlus(MAK)
+      -19.2     surPlus(MAK)
         4.8     HSELproduction
        -0.2     PAPproduction
+       -0.1     SoldLessThanProduced(HSEL)
+       -0.1     HSELToSell
 
-x(HSEL,IE)
-                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
-      824       profit
-        1       line1Cap
-       -4.8     surPlus(MAK)
-        4.8     HSELproduction
+x(LSEL)
+                (.LO, .L, .UP, .M = 0, 0, 100, 0)
+     3200       profit
+        1       line2Cap
+      -19.2     surPlus(KOK)
+        4.2     LSELproduction
        -0.2     PAPproduction
+       -0.1     SoldLessThanProduced(LSEL)
+       -0.1     LSELToSell
 
-x(HSEL,PA)
-GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     01/14/17 12:55:31 Page 11
+x(PAP)
+                (.LO, .L, .UP, .M = 0, 0, 100, 0)
+     6800       profit
+        1       paperMillCap
+       -4       surPlus(KUK)
+        1       PAPproduction
+       -0.1     SoldLessThanProduced(PAP)
+        0.02    HSELToSell
+        0.02    LSELToSell
+
+
+---- sol  sold product i in region j in 10000
+
+sol(MAS,EU)
+                (.LO, .L, .UP, .M = 0, 0, 100, 0)
+       40       profit
+        1       SoldLessThanProduced(MAS)
+
+sol(MAS,IE)
+                (.LO, .L, .UP, .M = 0, 0, 100, 0)
+      100       profit
+        1       SoldLessThanProduced(MAS)
+
+sol(MAS,PA)
+                (.LO, .L, .UP, .M = 0, 0, 100, 0)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     01/15/17 10:52:51 Page 10
 G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
-Column Listing      SOLVE aStaticModel Using MIP From line 160
+Column Listing      SOLVE aStaticModel Using MIP From line 167
 
 
-     x  Product i for region j
+     sol  sold product i in region j in 10000
 
-                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
-      825       profit
-        1       line1Cap
-       -4.8     surPlus(MAK)
-        4.8     HSELproduction
-       -0.2     PAPproduction
+      120       profit
+        1       SoldLessThanProduced(MAS)
 
-x(HSEL,KI)
-                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
-      826       profit
-        1       line1Cap
-       -4.8     surPlus(MAK)
-        4.8     HSELproduction
-       -0.2     PAPproduction
+sol(MAS,KI)
+                (.LO, .L, .UP, .M = 0, 0, 100, 0)
+      150       profit
+        1       SoldLessThanProduced(MAS)
 
-x(LSEL,EU)
-                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
-      803       profit
-        1       line2Cap
-       -4.8     surPlus(KOK)
-        4.2     LSELproduction
-       -0.2     PAPproduction
+sol(KUS,EU)
+                (.LO, .L, .UP, .M = 0, 0, 100, 0)
+       40       profit
+        1       SoldLessThanProduced(KUS)
 
-x(LSEL,IE)
-                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
-      802       profit
-        1       line2Cap
-       -4.8     surPlus(KOK)
-        4.2     LSELproduction
-       -0.2     PAPproduction
+sol(KUS,IE)
+                (.LO, .L, .UP, .M = 0, 0, 100, 0)
+      100       profit
+        1       SoldLessThanProduced(KUS)
 
-x(LSEL,PA)
-                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
-      805       profit
-        1       line2Cap
-       -4.8     surPlus(KOK)
-        4.2     LSELproduction
-       -0.2     PAPproduction
+sol(KUS,PA)
+                (.LO, .L, .UP, .M = 0, 0, 100, 0)
+      120       profit
+        1       SoldLessThanProduced(KUS)
 
-x(LSEL,KI)
-                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
-      807       profit
-        1       line2Cap
-       -4.8     surPlus(KOK)
-        4.2     LSELproduction
-       -0.2     PAPproduction
+sol(KUS,KI)
+                (.LO, .L, .UP, .M = 0, 0, 100, 0)
+      150       profit
+        1       SoldLessThanProduced(KUS)
 
-x(PAP,EU)
-                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
-     1704       profit
-        1       paperMillCap
-GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     01/14/17 12:55:31 Page 12
+sol(KOS,EU)
+                (.LO, .L, .UP, .M = 0, 0, 100, 0)
+      140       profit
+        1       SoldLessThanProduced(KOS)
+
+sol(KOS,IE)
+                (.LO, .L, .UP, .M = 0, 0, 100, 0)
+      200       profit
+        1       SoldLessThanProduced(KOS)
+
+sol(KOS,PA)
+                (.LO, .L, .UP, .M = 0, 0, 100, 0)
+      220       profit
+        1       SoldLessThanProduced(KOS)
+
+sol(KOS,KI)
+                (.LO, .L, .UP, .M = 0, 0, 100, 0)
+      250       profit
+        1       SoldLessThanProduced(KOS)
+
+sol(KUV,EU)
+                (.LO, .L, .UP, .M = 0, 0, 100, 0)
+       40       profit
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     01/15/17 10:52:51 Page 11
 G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
-Column Listing      SOLVE aStaticModel Using MIP From line 160
+Column Listing      SOLVE aStaticModel Using MIP From line 167
 
 
-     x  Product i for region j
+     sol  sold product i in region j in 10000
 
-       -1       surPlus(KUK)
-        1       PAPproduction
+        1       SoldLessThanProduced(KUV)
 
-x(PAP,IE)
-                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
-     1710       profit
-        1       paperMillCap
-       -1       surPlus(KUK)
-        1       PAPproduction
+sol(KUV,IE)
+                (.LO, .L, .UP, .M = 0, 0, 100, 0)
+      100       profit
+        1       SoldLessThanProduced(KUV)
 
-x(PAP,PA)
-                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
-     1712       profit
-        1       paperMillCap
-       -1       surPlus(KUK)
-        1       PAPproduction
+sol(KUV,PA)
+                (.LO, .L, .UP, .M = 0, 0, 100, 0)
+      120       profit
+        1       SoldLessThanProduced(KUV)
 
-x(PAP,KI)
-                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
-     1715       profit
-        1       paperMillCap
-       -1       surPlus(KUK)
-        1       PAPproduction
+sol(KUV,KI)
+                (.LO, .L, .UP, .M = 0, 0, 100, 0)
+      150       profit
+        1       SoldLessThanProduced(KUV)
+
+sol(KOV,EU)
+                (.LO, .L, .UP, .M = 0, 0, 100, 0)
+       40       profit
+        1       SoldLessThanProduced(KOV)
+
+sol(KOV,IE)
+                (.LO, .L, .UP, .M = 0, 0, 100, 0)
+      100       profit
+        1       SoldLessThanProduced(KOV)
+
+sol(KOV,PA)
+                (.LO, .L, .UP, .M = 0, 0, 100, 0)
+      120       profit
+        1       SoldLessThanProduced(KOV)
+
+sol(KOV,KI)
+                (.LO, .L, .UP, .M = 0, 0, 100, 0)
+      150       profit
+        1       SoldLessThanProduced(KOV)
+
+sol(HSEL,EU)
+                (.LO, .L, .UP, .M = 0, 0, 100, 0)
+       20       profit
+        1       SoldLessThanProduced(HSEL)
+        1       HSELToSell
+
+sol(HSEL,IE)
+                (.LO, .L, .UP, .M = 0, 0, 100, 0)
+       40       profit
+        1       SoldLessThanProduced(HSEL)
+        1       HSELToSell
+
+sol(HSEL,PA)
+                (.LO, .L, .UP, .M = 0, 0, 100, 0)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     01/15/17 10:52:51 Page 12
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Column Listing      SOLVE aStaticModel Using MIP From line 167
 
 
----- t  Timber assortment for timber k
+     sol  sold product i in region j in 10000
+
+       50       profit
+        1       SoldLessThanProduced(HSEL)
+        1       HSELToSell
+
+sol(HSEL,KI)
+                (.LO, .L, .UP, .M = 0, 0, 100, 0)
+       60       profit
+        1       SoldLessThanProduced(HSEL)
+        1       HSELToSell
+
+sol(LSEL,EU)
+                (.LO, .L, .UP, .M = 0, 0, 100, 0)
+       30       profit
+        1       SoldLessThanProduced(LSEL)
+        1       LSELToSell
+
+sol(LSEL,IE)
+                (.LO, .L, .UP, .M = 0, 0, 100, 0)
+       20       profit
+        1       SoldLessThanProduced(LSEL)
+        1       LSELToSell
+
+sol(LSEL,PA)
+                (.LO, .L, .UP, .M = 0, 0, 100, 0)
+       50       profit
+        1       SoldLessThanProduced(LSEL)
+        1       LSELToSell
+
+sol(LSEL,KI)
+                (.LO, .L, .UP, .M = 0, 0, 100, 0)
+       70       profit
+        1       SoldLessThanProduced(LSEL)
+        1       LSELToSell
+
+sol(PAP,EU)
+                (.LO, .L, .UP, .M = 0, 0, 100, 0)
+       40       profit
+        1       SoldLessThanProduced(PAP)
+
+sol(PAP,IE)
+                (.LO, .L, .UP, .M = 0, 0, 100, 0)
+      100       profit
+        1       SoldLessThanProduced(PAP)
+
+sol(PAP,PA)
+                (.LO, .L, .UP, .M = 0, 0, 100, 0)
+      120       profit
+        1       SoldLessThanProduced(PAP)
+
+sol(PAP,KI)
+                (.LO, .L, .UP, .M = 0, 0, 100, 0)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     01/15/17 10:52:51 Page 13
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Column Listing      SOLVE aStaticModel Using MIP From line 167
+
+
+     sol  sold product i in region j in 10000
+
+      150       profit
+        1       SoldLessThanProduced(PAP)
+
+
+---- t  Timber assortment for timber k in 10000
 
 t(MAT)
-                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
-        1       profit
-        1       surPlus(MAT)
-       -1       MASproduction
+                (.LO, .L, .UP, .M = 0, 0, 100, 0)
+       10       profit
+       10       surPlus(MAT)
+      -10       MASproduction
 
 t(KUT)
-                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
-        0.5     profit
-        1       surPlus(KUT)
-       -1       KUSKUVproduction
+                (.LO, .L, .UP, .M = 0, 0, 100, 0)
+        5       profit
+       10       surPlus(KUT)
+      -10       KUSKUVproduction
 
 t(KOT)
-                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
-        3       profit
-        1       surPlus(KOT)
-       -1       KOSKOVproduction
+                (.LO, .L, .UP, .M = 0, 0, 100, 0)
+       30       profit
+       10       surPlus(KOT)
+      -10       KOSKOVproduction
 
 t(MAK)
-                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
-        0.2     profit
-        1       surPlus(MAK)
-       -1       HSELproduction
-
-GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     01/14/17 12:55:31 Page 13
-G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
-Column Listing      SOLVE aStaticModel Using MIP From line 160
-
-
-     t  Timber assortment for timber k
+                (.LO, .L, .UP, .M = 0, 0, 100, 0)
+        2       profit
+       10       surPlus(MAK)
+      -10       HSELproduction
 
 t(KUK)
-                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
-        0.3     profit
-        1       surPlus(KUK)
+                (.LO, .L, .UP, .M = 0, 0, 100, 0)
+        3       profit
+       10       surPlus(KUK)
        -1       PAPproduction
 
 t(KOK)
-                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
-        0.2     profit
-        1       surPlus(KOK)
-       -1       LSELproduction
+                (.LO, .L, .UP, .M = 0, 0, 100, 0)
+        2       profit
+       10       surPlus(KOK)
+      -10       LSELproduction
 
 
----- s  Material surplus timber k
+---- s  Material surplus timber k in 1000
 
 s(MAT)
-                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+                (.LO, .L, .UP, .M = 0, 0, 100, 0)
      -190       profit
        -1       surPlus(MAT)
 
 s(KUT)
-                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     01/15/17 10:52:51 Page 14
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Column Listing      SOLVE aStaticModel Using MIP From line 167
+
+
+     s  Material surplus timber k in 1000
+
+                (.LO, .L, .UP, .M = 0, 0, 100, 0)
      -150       profit
        -1       surPlus(KUT)
 
 s(KOT)
-                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+                (.LO, .L, .UP, .M = 0, 0, 100, 0)
      -120       profit
        -1       surPlus(KOT)
 
 s(MAK)
-                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+                (.LO, .L, .UP, .M = 0, 0, 100, 0)
      -180       profit
        -1       surPlus(MAK)
 
 s(KUK)
-                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+                (.LO, .L, .UP, .M = 0, 0, 100, 0)
      -150       profit
        -1       surPlus(KUK)
 
 s(KOK)
-                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+                (.LO, .L, .UP, .M = 0, 0, 100, 0)
      -150       profit
        -1       surPlus(KOK)
 
-GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     01/14/17 12:55:31 Page 14
+
+****
+****  52 Integer +INF Bounds have been reset to 100 (see Option IntVarUp)
+****
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     01/15/17 10:52:51 Page 15
 G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
-Model Statistics    SOLVE aStaticModel Using MIP From line 160
+Model Statistics    SOLVE aStaticModel Using MIP From line 167
 
 
 MODEL STATISTICS
 
-BLOCKS OF EQUATIONS          13     SINGLE EQUATIONS           18
-BLOCKS OF VARIABLES           4     SINGLE VARIABLES           45
-NON ZERO ELEMENTS           207
+BLOCKS OF EQUATIONS          16     SINGLE EQUATIONS           28
+BLOCKS OF VARIABLES           5     SINGLE VARIABLES           53
+NON ZERO ELEMENTS           159     DISCRETE VARIABLES         52
 
 
-GENERATION TIME      =        0.005 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+GENERATION TIME      =        0.018 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
 
 
-EXECUTION TIME       =        0.005 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
-GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     01/14/17 12:55:31 Page 15
+EXECUTION TIME       =        0.020 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     01/15/17 10:52:51 Page 16
 G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
-Solution Report     SOLVE aStaticModel Using MIP From line 160
+Solution Report     SOLVE aStaticModel Using MIP From line 167
 
 
                S O L V E      S U M M A R Y
 
      MODEL   aStaticModel        OBJECTIVE  z
      TYPE    MIP                 DIRECTION  MAXIMIZE
-     SOLVER  CPLEX               FROM LINE  160
+     SOLVER  CPLEX               FROM LINE  167
 
 **** SOLVER STATUS     1 Normal Completion         
 **** MODEL STATUS      1 Optimal                   
 **** OBJECTIVE VALUE            85460.0000
 
- RESOURCE USAGE, LIMIT          0.005       300.000
- ITERATION COUNT, LIMIT         6     999999999
+ RESOURCE USAGE, LIMIT          0.042       300.000
+ ITERATION COUNT, LIMIT         0     999999999
 
 IBM ILOG CPLEX   24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+--- GAMS/Cplex licensed for continuous and discrete problems.
 Cplex 12.6.3.0
 
 Space for names approximately 0.00 Mb
 Use option 'names no' to turn use of names off
-LP status(1): optimal
-Cplex Time: 0.00sec (det. 0.05 ticks)
-Optimal solution found.
-Objective :       85460.000000
+MIP status(101): integer optimal solution
+Cplex Time: 0.01sec (det. 0.04 ticks)
+Fixing integer variables, and solving final LP...
+Fixed MIP status(1): optimal
+Cplex Time: 0.00sec (det. 0.03 ticks)
+Proven optimal solution.
+
+MIP Solution:        85460.000000    (0 iterations, 0 nodes)
+Final Solve:         85460.000000    (0 iterations)
+
+Best possible:       85460.000000
+Absolute gap:            0.000000
+Relative gap:            0.000000
 
 
                            LOWER          LEVEL          UPPER         MARGINAL
@@ -731,30 +764,30 @@ Objective :       85460.000000
   line1Cap  
   line2Cap  
   paperMillCap  
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     01/15/17 10:52:51 Page 17
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Solution Report     SOLVE aStaticModel Using MIP From line 167
+
 
 ---- EQU surPlus  
 
            LOWER          LEVEL          UPPER         MARGINAL
 
-MAT          .              .              .          -190.0000      
-KUT          .              .              .          -150.0000      
-KOT          .              .              .          -120.0000      
-MAK          .              .              .          -180.0000      
-KUK          .              .              .          -150.0000      
-KOK          .              .              .          -150.0000      
-GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     01/14/17 12:55:31 Page 16
-G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
-Solution Report     SOLVE aStaticModel Using MIP From line 160
-
+MAT          .              .              .              .          
+KUT          .              .              .              .          
+KOT          .              .              .              .          
+MAK          .              .              .              .          
+KUK          .              .              .              .          
+KOK          .              .              .              .          
 
                            LOWER          LEVEL          UPPER         MARGINAL
 
----- EQU MASproduc~          .              .              .          -189.0000      
----- EQU KUSKUVpro~          .              .              .          -149.5000      
----- EQU KOSKOVpro~          .              .              .          -117.0000      
----- EQU HSELprodu~          .              .              .          -179.8000      
----- EQU LSELprodu~          .              .              .          -149.8000      
----- EQU PAPproduc~          .              .              .         -1854.0000      
+---- EQU MASproduc~          .              .              .              .          
+---- EQU KUSKUVpro~          .              .              .              .          
+---- EQU KOSKOVpro~          .              .              .              .          
+---- EQU HSELprodu~          .              .              .              .          
+---- EQU LSELprodu~          .              .              .              .          
+---- EQU PAPproduc~          .              .              .              .          
 
   MASproduction  
   KUSKUVproduction  
@@ -763,115 +796,139 @@ Solution Report     SOLVE aStaticModel Using MIP From line 160
   LSELproduction  
   PAPproduction  
 
+---- EQU SoldLessThanProduced  
+
+            LOWER          LEVEL          UPPER         MARGINAL
+
+MAS         -INF             .              .              .          
+KUS         -INF             .              .              .          
+KOS         -INF             .              .              .          
+KUV         -INF             .              .              .          
+KOV         -INF             .              .              .          
+HSEL        -INF             .              .              .          
+LSEL        -INF             .              .              .          
+PAP         -INF             .              .              .          
+
+                           LOWER          LEVEL          UPPER         MARGINAL
+
+---- EQU HSELToSell        -INF             .              .              .          
+---- EQU LSELToSell        -INF             .              .              .          
+
+  HSELToSell  
+  LSELToSell  
+
                            LOWER          LEVEL          UPPER         MARGINAL
 
 ---- VAR z                 -INF        85460.0000        +INF             .          
 
   z  max profit
-
----- VAR x  Product i for region j
-
-               LOWER          LEVEL          UPPER         MARGINAL
-
-MAS .EU          .              .            +INF         -547.8400      
-MAS .IE          .              .            +INF         -553.8400      
-MAS .PA          .              .            +INF         -555.8400      
-MAS .KI          .              .            +INF         -558.8400      
-KUS .EU          .              .            +INF        -1860.2000      
-KUS .IE          .              .            +INF        -1866.2000      
-KUS .PA          .              .            +INF        -1868.2000      
-KUS .KI          .              .            +INF        -1871.2000      
-KOS .EU          .              .            +INF         -461.8400      
-KOS .IE          .              .            +INF         -467.8400      
-KOS .PA          .              .            +INF         -469.8400      
-KOS .KI          .              .            +INF         -472.8400      
-KUV .EU          .              .            +INF        -5223.8000      
-KUV .IE          .              .            +INF        -5229.8000      
-KUV .PA          .              .            +INF        -5231.8000      
-KUV .KI          .              .            +INF        -5234.8000      
-KOV .EU          .              .            +INF        -2604.0800      
-KOV .IE          .              .            +INF        -2610.0800      
-KOV .PA          .              .            +INF        -2612.0800      
-KOV .KI          .              .            +INF        -2615.0800      
-HSEL.EU          .              .            +INF        -1193.7600      
-HSEL.IE          .              .            +INF        -1195.7600      
-HSEL.PA          .              .            +INF        -1196.7600      
-HSEL.KI          .              .            +INF        -1197.7600      
-LSEL.EU          .              .            +INF        -1264.6400      
-LSEL.IE          .              .            +INF        -1263.6400      
-LSEL.PA          .              .            +INF        -1266.6400      
-GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     01/14/17 12:55:31 Page 17
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     01/15/17 10:52:51 Page 18
 G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
-Solution Report     SOLVE aStaticModel Using MIP From line 160
+Solution Report     SOLVE aStaticModel Using MIP From line 167
 
 
-     VAR x  Product i for region j
+---- VAR x  Produced of product i in 1000
+
+            LOWER          LEVEL          UPPER         MARGINAL
+
+MAS           .              .           100.0000     -2192.0000      
+KUS           .              .           100.0000     -1992.0000      
+KOS           .              .           100.0000     -1792.0000      
+KUV           .              .           100.0000     -9992.0000      
+KOV           .              .           100.0000    -10392.0000      
+HSEL          .              .           100.0000     -3280.0000      
+LSEL          .              .           100.0000     -3200.0000      
+PAP           .              .           100.0000     -6800.0000      
+
+---- VAR sol  sold product i in region j in 10000
 
                LOWER          LEVEL          UPPER         MARGINAL
 
-LSEL.KI          .              .            +INF        -1268.6400      
-PAP .EU          .              .            +INF             .          
-PAP .IE          .              .            +INF           -6.0000      
-PAP .PA          .              .            +INF           -8.0000      
-PAP .KI          .              .            +INF          -11.0000      
+MAS .EU          .              .           100.0000       -40.0000      
+MAS .IE          .              .           100.0000      -100.0000      
+MAS .PA          .              .           100.0000      -120.0000      
+MAS .KI          .              .           100.0000      -150.0000      
+KUS .EU          .              .           100.0000       -40.0000      
+KUS .IE          .              .           100.0000      -100.0000      
+KUS .PA          .              .           100.0000      -120.0000      
+KUS .KI          .              .           100.0000      -150.0000      
+KOS .EU          .              .           100.0000      -140.0000      
+KOS .IE          .              .           100.0000      -200.0000      
+KOS .PA          .              .           100.0000      -220.0000      
+KOS .KI          .              .           100.0000      -250.0000      
+KUV .EU          .              .           100.0000       -40.0000      
+KUV .IE          .              .           100.0000      -100.0000      
+KUV .PA          .              .           100.0000      -120.0000      
+KUV .KI          .              .           100.0000      -150.0000      
+KOV .EU          .              .           100.0000       -40.0000      
+KOV .IE          .              .           100.0000      -100.0000      
+KOV .PA          .              .           100.0000      -120.0000      
+KOV .KI          .              .           100.0000      -150.0000      
+HSEL.EU          .              .           100.0000       -20.0000      
+HSEL.IE          .              .           100.0000       -40.0000      
+HSEL.PA          .              .           100.0000       -50.0000      
+HSEL.KI          .              .           100.0000       -60.0000      
+LSEL.EU          .              .           100.0000       -30.0000      
+LSEL.IE          .              .           100.0000       -20.0000      
+LSEL.PA          .              .           100.0000       -50.0000      
+LSEL.KI          .              .           100.0000       -70.0000      
+PAP .EU          .              .           100.0000       -40.0000      
+PAP .IE          .              .           100.0000      -100.0000      
+PAP .PA          .              .           100.0000      -120.0000      
+PAP .KI          .              .           100.0000      -150.0000      
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     01/15/17 10:52:51 Page 19
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Solution Report     SOLVE aStaticModel Using MIP From line 167
 
----- VAR t  Timber assortment for timber k
+
+---- VAR t  Timber assortment for timber k in 10000
 
            LOWER          LEVEL          UPPER         MARGINAL
 
-MAT          .              .            +INF             .          
-KUT          .              .            +INF             .          
-KOT          .              .            +INF             .          
-MAK          .              .            +INF             .          
-KUK          .              .            +INF        -1704.3000      
-KOK          .              .            +INF             .          
+MAT          .              .           100.0000       -10.0000      
+KUT          .              .           100.0000        -5.0000      
+KOT          .              .           100.0000       -30.0000      
+MAK          .              .           100.0000        -2.0000      
+KUK          .              .           100.0000        -3.0000      
+KOK          .              .           100.0000        -2.0000      
 
----- VAR s  Material surplus timber k
+---- VAR s  Material surplus timber k in 1000
 
            LOWER          LEVEL          UPPER         MARGINAL
 
-MAT          .              .            +INF             .          
-KUT          .              .            +INF             .          
-KOT          .              .            +INF             .          
-MAK          .              .            +INF             .          
-KUK          .              .            +INF             .          
-KOK          .              .            +INF             .          
+MAT          .              .           100.0000       190.0000      
+KUT          .              .           100.0000       150.0000      
+KOT          .              .           100.0000       120.0000      
+MAK          .              .           100.0000       180.0000      
+KUK          .              .           100.0000       150.0000      
+KOK          .              .           100.0000       150.0000      
 
 
 **** REPORT SUMMARY :        0     NONOPT
                              0 INFEASIBLE
                              0  UNBOUNDED
-GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     01/14/17 12:55:31 Page 18
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     01/15/17 10:52:51 Page 20
 G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
 E x e c u t i o n
 
 
-----    162 VARIABLE x.M  Product i for region j
+----    169 VARIABLE x.M  Produced of product i in 1000
 
-              EU          IE          PA          KI
-
-MAS     -547.840    -553.840    -555.840    -558.840
-KUS    -1860.200   -1866.200   -1868.200   -1871.200
-KOS     -461.840    -467.840    -469.840    -472.840
-KUV    -5223.800   -5229.800   -5231.800   -5234.800
-KOV    -2604.080   -2610.080   -2612.080   -2615.080
-HSEL   -1193.760   -1195.760   -1196.760   -1197.760
-LSEL   -1264.640   -1263.640   -1266.640   -1268.640
-PAP                   -6.000      -8.000     -11.000
+MAS   -2192.000,    KUS   -1992.000,    KOS   -1792.000,    KUV   -9992.000,    KOV  -10392.000,    HSEL  -3280.000,    LSEL  -3200.000,    PAP   -6800.000
 
 
-----    162 VARIABLE t.L  Timber assortment for timber k
+----    169 VARIABLE t.L  Timber assortment for timber k in 10000
 
                       ( ALL       0.000 )
 
 
-----    162 VARIABLE s.L  Material surplus timber k
+----    169 VARIABLE s.L  Material surplus timber k in 1000
 
                       ( ALL       0.000 )
 
 
 
-EXECUTION TIME       =        0.002 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+EXECUTION TIME       =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
 
 
 USER: Course License Fall 2016                       A160811:0602AO-GEN
