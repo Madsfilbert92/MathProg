@@ -135,10 +135,15 @@ equations
         HSELproduction	''
         LSELproduction	''
         PAPproduction	''
-        salesConstraint(i) ''
+      //  salesConstraint(i) ''
+        sawMillCap2      ''
+        plywoodMillCap2  ''
+        line1Cap2        ''
+        line2Cap2        ''
+        paperMillCap2    ''
         ;
 
-		profit .. 			z =e= sum((i,j), ((y(i,j)*demand(i,j,'Gamma')-demand(i,j,'Delta')*x(i,j)) - c(i)*x(i,j))) -
+		profit .. 			z =e= sum((i,j), ((demand(i,j,'Gamma')-demand(i,j,'Delta')*x(i,j)) - c(i)*x(i,j))) -
                                   sum(k, (cost(k,'Alpha')+cost(k,'Beta')*t(k))) +
                                   sum((fp,j), 0.2*x(fp,j)*40) +
                                   sum(k,s(k)*cost(k,'Alpha')) 
@@ -149,6 +154,11 @@ equations
  		line1Cap..			sum(j, x('HSEL',j)) =l= 220;
  		line2Cap..			sum(j, x('LSEL',j)) =l= 180;
  		paperMillCap..		sum(j, x('PAP',j)) =l= 80;
+        sawMillCap2..        sum((sm,j), x(sm,j)) =g= 0.5; 
+        plywoodMillCap2..    sum((pm,j), x(pm,j)) =g= 0.5;
+        line1Cap2..          sum(j, x('HSEL',j)) =g= 0.5;
+        line2Cap2..          sum(j, x('LSEL',j)) =g= 0.5;
+        paperMillCap2..      sum(j, x('PAP',j)) =g= 0.5;
         surPlus(k)..        t(k) - sum((i,j), x(i,j)*ProductReq(i,k)) =e= s(k);
  		MASproduction..		sum(j, 2*x('MAS',j)) =e= t('MAT');
         KUSKUVproduction..	sum(j, 2*x('KUS',j) + 2.8*x('KUV',j)) =e= t('KUT');
@@ -158,7 +168,7 @@ equations
         PAPproduction..		sum(j, x('PAP',j) - 0.8*x('KUS',j) - 1.6*x('KUV',j)) =e= 
         										t('KUK') + 0.2 * sum(j,x('HSEL',j) + x('LSEL',j));
         //OBS VIRKER IKKE RIGTIGT.
-        salesConstraint(i)..   sum(j, x(i,j)) - 10.000 =g= M * sum(j, y(i,j));
+      //  salesConstraint(i)..   sum(j, x(i,j)) - 10.000 =l= M * sum(j, y(i,j));
 
 
 
@@ -167,4 +177,4 @@ model aStaticModel /all/ ;
 
 solve aStaticModel using mip maximizing z;
 
-Display x.L, t.L, s.L, y.L;
+Display x.L, t.L, s.L;// y.L;
