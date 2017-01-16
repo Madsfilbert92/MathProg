@@ -59,9 +59,6 @@ Parameters
      PAP 1700
      /
 
-    qu(q) 'Quantities in 10000';
-
-qu(q) = ord(q);
 
 Table demand(i,j,dp) 'The demand parameters of the products for different markets'
             Gamma   Delta
@@ -110,11 +107,11 @@ Table cost(k,cp)  'The timber assortment cost parameters'
 
 parameter price(i,j,q);
 
-price(i,j,q) = demand(i,j, 'Gamma')-demand(i,j,'Delta')*qu(q)*10
+price(i,j,q) = demand(i,j, 'Gamma')-demand(i,j,'Delta')*ord(q)*10
 
 parameter purchase(k,q);
 
-purchase(k,q) = cost(k, 'Alpha')+cost(k,'Beta')*qu(q)*10;
+purchase(k,q) = cost(k, 'Alpha')+cost(k,'Beta')*ord(q)*10;
 
 variable
     z 'max profit'
