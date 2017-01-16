@@ -15,7 +15,7 @@ SETS
         FuelProducts(Products) 'Products producing fuel' /MAS, KUS, KOS, KUV, KOV/
         DemandParameters 'The demand parameters table 4' /Gamma, Delta/
         CostParameters 'The cost parameters table 1' /Alpha, Beta/
-        Quantities 'Possible Quantities to be sold' /1*1000/;
+        Quantities 'Possible Quantities to be sold' /1*150/;
         ;
 
 ALIAS(Products,i);
@@ -45,7 +45,7 @@ Table ProductReq(i,k) 'Amount of timber needed for each product'
     
     LSEL                         4.8
     
-    PAP                     1.0    ;               
+    PAP                      1.0    ;               
 
 Parameters
     c(i) 'cost of making product'
