@@ -153,7 +153,7 @@ equations
 		profit .. 			z =e= sum((i,j,q), price(i,j,q)*sol(i,j,q)*ord(q)*10) - sum(i, c(i)*x(i)) -
                                   sum((k,q), purchase(k,q)*t(k,q)*ord(q)*10) +
                                   sum(fp, 0.2*x(fp)*40) +
-                                  sum(k, cost(k,'Alpha')*y(k)) 
+                                  sum(k, cost(k,'Alpha')*s(k)) 
                                   ;
 		sawMillCap.. 		sum((sm), x(sm)) =l= 200; 
  		plywoodMillCap.. 	sum((pm), x(pm)) =l= 90;
