@@ -15,12 +15,14 @@ SETS
         FuelProducts(Products) 'Products producing fuel' /MAS, KUS, KOS, KUV, KOV/
         DemandParameters 'The demand parameters table 4' /Gamma, Delta/
         CostParameters 'The cost parameters table 1' /Alpha, Beta/
-        Quantities 'Possible Quantities to be sold' /1*150/;
+        Quantities 'Possible Quantities to be sold' /1*150/
+        Year 'Year in which the product is sold' /T1*T3/
         ;
 
 ALIAS(Products,i);
 ALIAS(Regions,j);
 ALIAS(Timber,k);
+ALIAS(Year, a);
 ALIAS(SawMillProducts,sm);
 ALIAS(PlywoodMillProducts, pm);
 ALIAS(FuelProducts, fp);
@@ -43,7 +45,7 @@ Table ProductReq(i,k) 'Amount of timber needed for each product'
     
     HSEL               4.8 
     
-    LSEL                         4.8
+    LSEL                         4.2
     
     PAP                      1.0    ;               
 
@@ -59,11 +61,38 @@ Parameters
      PAP 1700
      /
 
+     coef(i) 'coeficcient to be added'
+    /
+    MAS 1.010,
+    KUS 1.008,
+    KOS 1.015,
+    KUV 1.015,
+    KOV 1.020,
+    HSEL 1.025,
+    LSEL 1.030,
+    PAP 1.0350
+    /
+
+    FixCost(i) 'Cost of added capacity'
+    /
+     MAS 100,
+     KUS 100,
+     KOS 100,
+     KUV 300,
+     KOV 300, 
+     HSEL 500,
+     LSEL 500,
+     PAP 700
+     /
+
+    years(a) 'years in numbers'
     qu(q) 'Quantities in 10000';
 
 qu(q) = ord(q);
+years(a) = ord(a)-1;
 
-Table demand(i,j,dp) 'The demand parameters of the products for different markets'
+
+Table demand(i,j, dp) 'The demand parameters of the products for different markets'
             Gamma   Delta
     MAS.EU  1600    4.0
     MAS.IE  1300    10.0
@@ -118,58 +147,78 @@ purchase(k,q) = cost(k, 'Alpha')+cost(k,'Beta')*qu(q)*10;
 
 variable
     z 'max profit'
+    yz(a) 'profit per year'
     ;
 
 integer variables
-     x(i)     'Produced of product i in 1000';
+     x(i,a)     'Produced of product i in 1000'
+     ;
 
-variables
-     s(k)    'Material surplus timber k in 1000';
+variables 
+    s(k,a)      'surplus of timber k'
+    cap(i,a)      'Slackvariable for extra capacity'
+    AddCap(i,a) 'accumulated addition until a' ;
 
 binary variable
-    y(k) 'if there is a surplus of material k'
-    sol(i,j,q) 'sold product i in region j in 10000'
-    t(k,q)    'Timber assortment for timber k in 10000';
+    sol(i,j,a,q) 'sold product i in region j in 10000'
+    t(k,a,q)    'Timber assortment for timber k in 10000';
 
 
 equations
-        profit 			'objective function'
+        profit          'objective function'
+        YearlyProfit    'profitperyear'
         materialReq     ''
-        sawMillCap 		''
-        plywoodMillCap 	''
-        line1Cap		''
-        line2Cap		''
-        paperMillCap	''
-        surPlus(k)		''
+        sawMillCap      ''
+        plywoodMillCap  ''
+        line1Cap        ''
+        line2Cap        ''
+        paperMillCap    ''
+        surPlus      ''
         SoldLessThanProduced ''
         HSELToSell      ''
         LSELToSell      ''
-        IsThereSurplus  ''
         NotMoreThanOneQuan ''
         NotMoreThanOneT ''
+        DemandInYear ''
+        SlackFirstYear ''
+        MaxCapAdd1 ''
+        MaxCapAdd2 ''
+        MaxCapAdd3 ''
+        MaxCapAdd4 ''
+        MaxCapAdd5 ''
+        Accu ''
         ;
 
-		profit .. 			z =e= sum((i,j,q), price(i,j,q)*sol(i,j,q)*ord(q)*10) - sum(i, c(i)*x(i)) -
-                                  sum((k,q), purchase(k,q)*t(k,q)*ord(q)*10) +
-                                  sum(fp, 0.2*x(fp)*40) +
-                                  sum(k, cost(k,'Alpha')*y(k)) 
+        profit ..           z =e= sum(a, power(0.95,years(a))*yz(a)) 
                                   ;
-		sawMillCap.. 		sum((sm), x(sm)) =l= 200; 
- 		plywoodMillCap.. 	sum((pm), x(pm)) =l= 90;
- 		line1Cap..			x('HSEL') =l= 220;
- 		line2Cap..			x('LSEL') =l= 180;
- 		paperMillCap..		x('PAP') =l= 80;
-        NotMoreThanOneT(k) .. sum(q, t(k,q)) =l= 1;
-        surPlus(k)..        sum(q, t(k,q)*ord(q)*10) - sum(i, x(i)*ProductReq(i,k)) =e= s(k);
- 		materialReq(k) ..   sum(i, ProductReq(i,k)*x(i)) =l= sum(q, t(k,q)*ord(q)*10); 
-        SoldLessThanProduced(i) .. sum((j,q), sol(i,j,q)*ord(q)) =l=  x(i)/10;
-        NotMoreThanOneQuan(i,j) .. sum(q, sol(i,j,q)) =l= 1; 
-        HSELToSell .. sum((j,q), sol('HSEL', j,q)*ord(q)) =l= (x('HSEL')-0.2*x('PAP'))/10;
-        LSELToSell .. sum((j,q), sol('LSEL', j, q)*ord(q)) =l= (x('LSEL')-0.2*x('PAP'))/10;
-        IsThereSurplus(k) .. s(k) =g= y(k); 
+        YearlyProfit(a) ..     yz(a) =e=  sum((i,j,q), price(i,j,q)*sol(i,j,a,q)*ord(q)*10) - sum(i, c(i)*x(i,a)) -
+                                          sum((k,q), purchase(k,q)*t(k,a,q)*ord(q)*10) +
+                                          sum(fp, 0.2*x(fp,a)*40) +
+                                          sum(k, cost(k,'Alpha')*s(k,a))
+                                          - sum(i, FixCost(i)*cap(i, a+1));                                 
+        sawMillCap(a)..        sum((sm), x(sm,a)) =l= 100 + sum(sm, AddCap(sm,a)); 
+        plywoodMillCap(a)..    sum((pm), x(pm,a)) =l= 90 + sum(pm,  AddCap(pm,a)); ;
+        line1Cap(a)..          x('HSEL', a) =l= 100 +  AddCap('HSEL',a); 
+        line2Cap(a)..          x('LSEL', a) =l= 150 +  AddCap('LSEL',a);
+        paperMillCap(a)..      x('PAP', a) =l= 80 + AddCap('PAP',a);
+        NotMoreThanOneT(a,k) .. sum(q, t(k,a,q)) =l= 1;
+        surPlus(a,k)..        sum(q, t(k,a,q)*ord(q)*10) - sum(i, x(i,a)*ProductReq(i,k)) =e= s(k,a);
+        materialReq(a,k) ..   sum(i, ProductReq(i,k)*x(i,a)) =l= sum(q, t(k,a,q)*ord(q)*10); 
+        SoldLessThanProduced(a,i) .. sum((j,q), sol(i,j,a,q)*ord(q)) =l=  x(i,a)/10;
+        NotMoreThanOneQuan(a,i,j) .. sum(q, sol(i,j,a,q)) =l= 1; 
+        HSELToSell(a) .. sum((j,q), sol('HSEL', j, a, q)*ord(q)) =l= (x('HSEL',a)-0.2*x('PAP',a))/10;
+        LSELToSell(a) .. sum((j,q), sol('LSEL', j, a, q)*ord(q)) =l= (x('LSEL',a)-0.2*x('PAP',a))/10; 
+        DemandInYear(a,i,j,q)$(ord(a)>1) .. sol(i,j,a,q)*ord(q) =e= power(coef(i), years(a))*sol(i,j,a-1,q)*ord(q); 
+        SlackFirstYear(i) .. cap(i,'T1') =e= 0;
+        MaxCapAdd1 .. sum((a, sm), AddCap(sm,a)) =l= 100*1.5-100;
+        MaxCapAdd2 .. sum((a, pm), AddCap(pm,a)) =l= 90*1.5-90;
+        MaxCapAdd3 .. sum(a, AddCap('HSEL',a)) =l= 100*2-100;
+        MaxCapAdd4 .. sum(a, AddCap('LSEL', a)) =l= 150*2-150;
+        MaxCapAdd5 .. sum(a, AddCap('PAP', a)) =l= 80*2-80;
+        Accu(i,a) .. AddCap(i,a) =e= AddCap(i,a-1)+cap(i,a);
 
 model aStaticModel /all/ ;
 
 solve aStaticModel using mip maximizing z;
 
-Display x.L, t.L, sol.L, x.M, s.L, y.L;
+Display x.L, t.L, sol.L, x.M, s.L, yz.L;

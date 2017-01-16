@@ -128,7 +128,6 @@ variables
     s(k)      'surplus of timber k';
 
 binary variable
-    y(k) 'if there is a surplus of material k'
     sol(i,j,q) 'sold product i in region j in 10000'
     t(k,q)    'Timber assortment for timber k in 10000';
 
@@ -145,7 +144,6 @@ equations
         SoldLessThanProduced ''
         HSELToSell      ''
         LSELToSell      ''
-        IsThereSurplus  ''
         NotMoreThanOneQuan ''
         NotMoreThanOneT ''
         ;
@@ -166,11 +164,10 @@ equations
         SoldLessThanProduced(i) .. sum((j,q), sol(i,j,q)*ord(q)) =l=  x(i)/10;
         NotMoreThanOneQuan(i,j) .. sum(q, sol(i,j,q)) =l= 1; 
         HSELToSell .. sum((j,q), sol('HSEL', j,q)*ord(q)) =l= (x('HSEL')-0.2*x('PAP'))/10;
-        LSELToSell .. sum((j,q), sol('LSEL', j, q)*ord(q)) =l= (x('LSEL')-0.2*x('PAP'))/10;
-        IsThereSurplus(k) .. s(k) =g= y(k); 
+        LSELToSell .. sum((j,q), sol('LSEL', j, q)*ord(q)) =l= (x('LSEL')-0.2*x('PAP'))/10; 
 
 model aStaticModel /all/ ;
 
 solve aStaticModel using mip maximizing z;
 
-Display x.L, t.L, sol.L, x.M, s.L, y.L;
+Display x.L, t.L, sol.L, x.M, s.L;
