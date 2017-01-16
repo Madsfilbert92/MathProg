@@ -121,7 +121,9 @@ variable
     ;
 
 integer variables
-     x(i)     'Produced of product i in 1000'
+     x(i)     'Produced of product i in 1000';
+
+variables
      s(k)    'Material surplus timber k in 1000';
 
 binary variable

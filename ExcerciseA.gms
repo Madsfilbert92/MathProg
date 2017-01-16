@@ -43,7 +43,7 @@ Table ProductReq(i,k) 'Amount of timber needed for each product'
     
     HSEL               4.8 
     
-    LSEL                         4.8
+    LSEL                         4.2
     
     PAP                      1.0    ;               
 
@@ -122,7 +122,10 @@ variable
 
 integer variables
      x(i)     'Produced of product i in 1000'
-     s(k)    'Material surplus timber k in 1000';
+     ;
+
+variables 
+    s(k)      'surplus of timber k';
 
 binary variable
     y(k) 'if there is a surplus of material k'
