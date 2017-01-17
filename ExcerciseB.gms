@@ -232,11 +232,11 @@ solve aStaticModel using mip maximizing z;
 
 parameter totalSalesValue(a);
 
-totalSalesValue(a) = sum((i,j,q), price(i,j,a,q)*sol.l(i,j,a,q)*ord(q));
+totalSalesValue(a) = sum((i,j,q), price(i,j,a,q)*sol.l(i,j,a,q)*ord(q)*10);
 
 parameter SalesOverview(j,a);
 
-SalesOverview(j,a)= 100*(sum((i,q), price(i,j,a,q)*sol.l(i,j,a,q)*ord(q))/totalSalesValue(a));
+SalesOverview(j,a)= 100*(sum((i,q), price(i,j,a,q)*sol.l(i,j,a,q)*ord(q)*10)/totalSalesValue(a));
 
 SET V  / ATO, DPC, SP, FC, PROFIT/;
 
