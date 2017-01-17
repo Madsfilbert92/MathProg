@@ -85,9 +85,7 @@ Parameters
      PAP 700
      /
 
-    years(a) 'years in numbers'
-    qu(q) 'Quantities in 10000';
-
+    years(a) 'years in numbers';
 years(a) = ord(a)-1;
 
 
@@ -138,7 +136,7 @@ Table cost(k,cp)  'The timber assortment cost parameters'
 
 parameter price(i,j,a,q);
 
-price(i,j,a,q) = demand(i,j, 'Gamma')-(demand(i,j,'Delta')*ord(q)*10)/power(coef(i), years(a))
+price(i,j,a,q) = demand(i,j, 'Gamma')-(demand(i,j,'Delta')*((ord(q)*10)/power(coef(i), years(a))));
 
 parameter purchase(k,q);
 
@@ -157,14 +155,14 @@ variables
     s(k,a)      'surplus of timber k'
     cap(i,a)      'Slackvariable for extra capacity'
     AccCap(i,a) 'accumulated capacity until a'
-  //  dem(i,j,a)  'demand of product i in region j in year a';
 ;
 positive variable
     cap; 
 
 binary variable
     sol(i,j,a,q) 'sold product i in region j in 10000'
-    t(k,a,q)    'Timber assortment for timber k in 10000';
+    t(k,a,q)    'Timber assortment for timber k in 10000'
+    ;
 
 
 equations
@@ -182,7 +180,6 @@ equations
         LSELToSell      ''
         NotMoreThanOneQuan ''
         NotMoreThanOneT ''
-     //   DemandInYear ''
         SlackFirstYear ''
         MaxCapAdd1 ''
         MaxCapAdd2 ''
@@ -216,7 +213,6 @@ equations
         NotMoreThanOneQuan(a,i,j) .. sum(q, sol(i,j,a,q)) =l= 1; 
         HSELToSell(a) .. sum((j,q), sol('HSEL', j, a, q)*ord(q)) =l= (x('HSEL',a)-0.2*x('PAP',a))/10;
         LSELToSell(a) .. sum((j,q), sol('LSEL', j, a, q)*ord(q)) =l= (x('LSEL',a)-0.2*x('PAP',a))/10; 
-     //   DemandInYear(a,i,j,q)$(ord(a)>1) .. sol(i,j,a,q)*ord(q) =l= power(coef(i), years(a))*dem(i,j,a-1); 
         SlackFirstYear(i) .. cap(i,'T1') =e= 0;
         MaxCapAdd1(a) .. sum(sm, AccCap(sm,a)) =l= 100*1.5;
         MaxCapAdd2(a) .. sum(pm, AccCap(pm,a)) =l= 90*1.5;
@@ -234,5 +230,31 @@ model aStaticModel /all/ ;
 
 solve aStaticModel using mip maximizing z;
 
+parameter totalSalesValue(a);
 
-Display x.L, t.L, sol.L, x.M, s.L, yz.L, AccCap.L, cap.L;
+totalSalesValue(a) = sum((i,j,q), price(i,j,a,q)*sol.l(i,j,a,q)*ord(q));
+
+parameter SalesOverview(j,a);
+
+SalesOverview(j,a)= 100*(sum((i,q), price(i,j,a,q)*sol.l(i,j,a,q)*ord(q))/totalSalesValue(a));
+
+SET V  / ATO, DPC, SP, FC, PROFIT/;
+
+parameter EXECUTIVETABLE(V, a)
+          annualSales(a)
+          productionCosts(a)
+          fix(a)
+            ;
+
+annualSales(a) = sum((i,j,q),sol.l(i,j,a,q)*ord(q)*10);
+productionCosts(a) = sum(i, x.l(i,a)*c(i)) + sum((k,q), purchase(k,q)*t.l(k,a,q)*ord(q)*10);
+fix(a) = sum(i, FixCost(i)*(cap.l(i, a+1)+AccCap.l(i,a)));
+
+EXECUTIVETABLE('ATO',a) = annualSales(a);
+EXECUTIVETABLE('DPC',a) = productionCosts(a);
+EXECUTIVETABLE('SP',a) = totalSalesValue(a);
+EXECUTIVETABLE('FC',a) = fix(a);
+EXECUTIVETABLE('PROFIT', a) = yz.l(a);
+
+
+Display SALESOVERVIEW, EXECUTIVETABLE;
