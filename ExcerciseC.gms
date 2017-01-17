@@ -17,6 +17,7 @@ SETS
         CostParameters 'The cost parameters table 1' /Alpha, Beta/
         Quantities 'Possible Quantities to be sold' /1*150/
         Year 'Year in which the product is sold' /T1*T3/
+        Scenarios   'Scenarios'                     /S1*S4/
         ;
 
 ALIAS(Products,i);
@@ -29,6 +30,15 @@ ALIAS(FuelProducts, fp);
 ALIAS(DemandParameters, dp);
 ALIAS(CostParameters, cp);
 ALIAS(Quantities, q);
+ALIAS(Scenarios,sc);
+
+Table Rho(sc,a)
+        T1      T2      T3
+    S1  1.00    1.05    1.07
+    S2  1.00    1.05    0.95
+    S3  1.00    0.95    1.05
+    S4  1.00    0.95    0.93
+;
 
 Table ProductReq(i,k) 'Amount of timber needed for each product'
         MAT  KUT  KOT  MAK  KUK  KOK 
@@ -146,23 +156,24 @@ purchase(k,q) = cost(k, 'Alpha')+cost(k,'Beta')*ord(q)*10;
 
 variable
     z 'max profit'
-    yz(a) 'profit per year'
+    yz(a,sc) 'profit per year'
     ;
 
 integer variables
-     x(i,a)     'Produced of product i in 1000'
+     x(i,a,sc)     'Produced of product i in 1000'
      ;
 
 variables 
-    s(k,a)      'surplus of timber k'
-    AccCap(i,a) 'accumulated capacity until a'
+    s(k,a,sc)      'surplus of timber k'
+    
 ;
 positive variable
-     cap(i,a)      'Slackvariable for extra capacity'; 
+     cap(i,a,sc)      'Slackvariable for extra capacity'
+     AccCap(i,a,sc) 'accumulated capacity until a'; 
 
 binary variable
-    sol(i,j,a,q) 'sold product i in region j in 10000'
-    t(k,a,q)    'Timber assortment for timber k in 10000';
+    sol(i,j,a,sc,q) 'sold product i in region j in 10000'
+    t(k,a,sc,q)    'Timber assortment for timber k in 10000';
 
 
 equations
@@ -192,39 +203,50 @@ equations
         SCap3   ''
         SCap4   ''
         SCap5   ''
+        ScenarioControl1 ''
+        ScenarioControl2 ''
+        ScenarioControl3 ''
+        ScenarioControl4 ''
+        ScenarioControl5 ''
+
         ;
 
-        profit ..           z =e= sum(a,yz(a)); 
+        profit ..           z =e= sum((sc,a),yz(a,sc)); 
                                   ;
-        YearlyProfit(a) ..     yz(a) =e=  power(0.95,years(a))*(sum((i,j,q), price(i,j,a,q)*sol(i,j,a,q)*ord(q)*10) - sum(i, c(i)*x(i,a)) -
-                                          sum((k,q), purchase(k,q)*t(k,a,q)*ord(q)*10) +
-                                          sum(fp, 0.2*x(fp,a)*40) +
-                                          sum(k, cost(k,'Alpha')*s(k,a)))
-                                          - sum(i, FixCost(i)*(cap(i, a+1)+AccCap(i,a)));                                 
-        sawMillCap(a)..        sum((sm), x(sm,a)) =l=  sum(sm, AccCap(sm,a)); 
-        plywoodMillCap(a)..    sum((pm), x(pm,a)) =l= sum(pm,  AccCap(pm,a)); 
-        line1Cap(a)..          x('HSEL', a) =l= AccCap('HSEL',a); 
-        line2Cap(a)..          x('LSEL', a) =l= AccCap('LSEL',a);
-        paperMillCap(a)..      x('PAP', a) =l= AccCap('PAP',a);
-        NotMoreThanOneT(a,k) .. sum(q, t(k,a,q)) =l= 1;
-        surPlus(a,k)..        sum(q, t(k,a,q)*ord(q)*10) - sum(i, x(i,a)*ProductReq(i,k)) =e= s(k,a);
-        materialReq(a,k) ..   sum(i, ProductReq(i,k)*x(i,a)) =l= sum(q, t(k,a,q)*ord(q)*10); 
-        SoldLessThanProduced(a,i) .. sum((j,q), sol(i,j,a,q)*ord(q)) =l=  x(i,a)/10;
-        NotMoreThanOneQuan(a,i,j) .. sum(q, sol(i,j,a,q)) =l= 1; 
-        HSELToSell(a) .. sum((j,q), sol('HSEL', j, a, q)*ord(q)) =l= (x('HSEL',a)-0.2*x('PAP',a))/10;
-        LSELToSell(a) .. sum((j,q), sol('LSEL', j, a, q)*ord(q)) =l= (x('LSEL',a)-0.2*x('PAP',a))/10; 
-        SlackFirstYear(i) .. cap(i,'T1') =e= 0;
-        MaxCapAdd1(a) .. sum(sm, AccCap(sm,a)) =l= 100*1.5;
-        MaxCapAdd2(a) .. sum(pm, AccCap(pm,a)) =l= 90*1.5;
-        MaxCapAdd3(a) .. AccCap('HSEL',a) =l= 100*2;
-        MaxCapAdd4(a) .. AccCap('LSEL', a) =l= 150*2;
-        MaxCapAdd5(a) .. AccCap('PAP', a) =l= 80*2;
-        AccuCap(i,a)$(ord(a)>1) .. AccCap(i,a) =e= AccCap(i,a-1)+cap(i,a);
-        SCap1 .. sum(sm, AccCap(sm, 'T1')) =e= 100;
-        SCap2 .. sum(pm, AccCap(pm, 'T1')) =e= 90;  
-        SCap3 .. AccCap('HSEL', 'T1') =e= 100; 
-        SCap4 .. AccCap('LSEL', 'T1') =e= 150;   
-        SCap5 .. AccCap('PAP', 'T1') =e= 80;   
+        YearlyProfit(a,sc) ..     yz(a,sc) =e=  power(0.95,years(a))*Rho(sc,a)*(sum((i,j,q), price(i,j,a,q)*sol(i,j,a,sc,q)*ord(q)*10) - sum(i, c(i)*x(i,a,sc)) -
+                                          sum((k,q), purchase(k,q)*t(k,a,sc,q)*ord(q)*10) +
+                                          sum(fp, 0.2*x(fp,a,sc)*40) +
+                                          sum(k, cost(k,'Alpha')*s(k,a,sc)))
+                                          - sum(i, FixCost(i)*(cap(i, a+1,sc)+AccCap(i,a,sc)));                                 
+        sawMillCap(a,sc)..        sum((sm), x(sm,a,sc)) =l=  sum(sm, AccCap(sm,a,sc)); 
+        plywoodMillCap(a,sc)..    sum((pm), x(pm,a,sc)) =l= sum(pm,  AccCap(pm,a,sc)); 
+        line1Cap(a,sc)..          x('HSEL', a,sc) =l= AccCap('HSEL',a,sc); 
+        line2Cap(a,sc)..          x('LSEL', a,sc) =l= AccCap('LSEL',a,sc);
+        paperMillCap(a,sc)..      x('PAP', a,sc) =l= AccCap('PAP',a,sc);
+        NotMoreThanOneT(a,k,sc) .. sum(q, t(k,a,sc,q)) =l= 1;
+        surPlus(a,k,sc)..        sum(q, t(k,a,sc,q)*ord(q)*10) - sum(i, x(i,a,sc)*ProductReq(i,k)) =e= s(k,a,sc);
+        materialReq(a,k,sc) ..   sum(i, ProductReq(i,k)*x(i,a,sc)) =l= sum(q, t(k,a,sc,q)*ord(q)*10); 
+        SoldLessThanProduced(a,i,sc) .. sum((j,q), sol(i,j,a,sc,q)*ord(q)) =l=  x(i,a,sc)/10;
+        NotMoreThanOneQuan(a,i,j,sc) .. sum(q, sol(i,j,a,sc,q)) =l= 1; 
+        HSELToSell(a,sc) .. sum((j,q), sol('HSEL', j, a,sc, q)*ord(q)) =l= (x('HSEL',a,sc)-0.2*x('PAP',a,sc))/10;
+        LSELToSell(a,sc) .. sum((j,q), sol('LSEL', j, a,sc, q)*ord(q)) =l= (x('LSEL',a,sc)-0.2*x('PAP',a,sc))/10; 
+        SlackFirstYear(i,sc) .. cap(i,'T1',sc) =e= 0;
+        MaxCapAdd1(a,sc) .. sum(sm, AccCap(sm,a,sc)) =l= 100*1.5;
+        MaxCapAdd2(a,sc) .. sum(pm, AccCap(pm,a,sc)) =l= 90*1.5;
+        MaxCapAdd3(a,sc) .. AccCap('HSEL',a,sc) =l= 100*2;
+        MaxCapAdd4(a,sc) .. AccCap('LSEL', a,sc) =l= 150*2;
+        MaxCapAdd5(a,sc) .. AccCap('PAP', a,sc) =l= 80*2;
+        AccuCap(i,a,sc)$(ord(a)>1) .. AccCap(i,a,sc) =e= AccCap(i,a-1,sc)+cap(i,a,sc);
+        SCap1(sc) .. sum(sm, AccCap(sm, 'T1',sc)) =e= 100;
+        SCap2(sc) .. sum(pm, AccCap(pm, 'T1',sc)) =e= 90;  
+        SCap3(sc) .. AccCap('HSEL', 'T1',sc) =e= 100; 
+        SCap4(sc) .. AccCap('LSEL', 'T1',sc) =e= 150;   
+        SCap5(sc) .. AccCap('PAP', 'T1',sc) =e= 80;  
+        ScenarioControl1(i).. x(i,'T1','S1') =e= x(i,'T1','S2');
+        ScenarioControl2(i).. x(i,'T1','S1') =e= x(i,'T1','S3');
+        ScenarioControl3(i).. x(i,'T1','S1') =e= x(i,'T1','S4');
+        ScenarioControl4(i).. x(i,'T2','S1') =e= x(i,'T2','S2');
+        ScenarioControl5(i).. x(i,'T2','S3') =e= x(i,'T2','S4');
 
 model aStaticModel /all/ ;
 
