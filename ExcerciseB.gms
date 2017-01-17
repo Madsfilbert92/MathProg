@@ -16,7 +16,7 @@ SETS
         DemandParameters 'The demand parameters table 4' /Gamma, Delta/
         CostParameters 'The cost parameters table 1' /Alpha, Beta/
         Quantities 'Possible Quantities to be sold' /1*150/
-        Year 'Year in which the product is sold' /T1*T3/
+        Year 'Year in which the product is sold' /T0*T2/
         ;
 
 ALIAS(Products,i);
