@@ -16,7 +16,7 @@ SETS
         DemandParameters 'The demand parameters table 4' /Gamma, Delta/
         CostParameters 'The cost parameters table 1' /Alpha, Beta/
         Quantities 'Possible Quantities to be sold' /1*150/
-        Year 'Year in which the product is sold' /T1*T3/
+        Year 'Year in which the product is sold' /T0*T2/
         Scenarios   'Scenarios'                     /S1*S4/
         ;
 
@@ -33,7 +33,7 @@ ALIAS(Quantities, q);
 ALIAS(Scenarios,sc);
 
 Table Rho(sc,a)
-        T1      T2      T3
+        T0      T1      T2
     S1  1.00    1.05    1.07
     S2  1.00    1.05    0.95
     S3  1.00    0.95    1.05
@@ -229,23 +229,23 @@ equations
         NotMoreThanOneQuan(a,i,j,sc) .. sum(q, sol(i,j,a,sc,q)) =l= 1; 
         HSELToSell(a,sc) .. sum((j,q), sol('HSEL', j, a,sc, q)*ord(q)) =l= (x('HSEL',a,sc)-0.2*x('PAP',a,sc))/10;
         LSELToSell(a,sc) .. sum((j,q), sol('LSEL', j, a,sc, q)*ord(q)) =l= (x('LSEL',a,sc)-0.2*x('PAP',a,sc))/10; 
-        SlackFirstYear(i,sc) .. cap(i,'T1',sc) =e= 0;
+        SlackFirstYear(i,sc) .. cap(i,'T0',sc) =e= 0;
         MaxCapAdd1(a,sc) .. sum(sm, AccCap(sm,a,sc)) =l= 100*1.5;
         MaxCapAdd2(a,sc) .. sum(pm, AccCap(pm,a,sc)) =l= 90*1.5;
         MaxCapAdd3(a,sc) .. AccCap('HSEL',a,sc) =l= 100*2;
         MaxCapAdd4(a,sc) .. AccCap('LSEL', a,sc) =l= 150*2;
         MaxCapAdd5(a,sc) .. AccCap('PAP', a,sc) =l= 80*2;
         AccuCap(i,a,sc)$(ord(a)>1) .. AccCap(i,a,sc) =e= AccCap(i,a-1,sc)+cap(i,a,sc);
-        SCap1(sc) .. sum(sm, AccCap(sm, 'T1',sc)) =e= 100;
-        SCap2(sc) .. sum(pm, AccCap(pm, 'T1',sc)) =e= 90;  
-        SCap3(sc) .. AccCap('HSEL', 'T1',sc) =e= 100; 
-        SCap4(sc) .. AccCap('LSEL', 'T1',sc) =e= 150;   
-        SCap5(sc) .. AccCap('PAP', 'T1',sc) =e= 80;  
-        ScenarioSolControl1(i,j,q).. sol(i, j, 'T1','S1',q) =e= sol(i, j, 'T1','S2',q);
-        ScenarioSolControl2(i,j,q).. sol(i, j, 'T1','S1',q) =e= sol(i, j, 'T1','S3',q);
-        ScenarioSolControl3(i,j,q).. sol(i, j, 'T1','S1',q) =e= sol(i, j, 'T1','S4',q);
-        ScenarioSolControl4(i,j,q).. sol(i, j, 'T2','S1',q) =e= sol(i, j, 'T2','S2',q);
-        ScenarioSolControl5(i,j,q).. sol(i, j, 'T2','S3',q) =e= sol(i, j, 'T2','S4',q);
+        SCap1(sc) .. sum(sm, AccCap(sm, 'T0',sc)) =e= 100;
+        SCap2(sc) .. sum(pm, AccCap(pm, 'T0',sc)) =e= 90;  
+        SCap3(sc) .. AccCap('HSEL', 'T0',sc) =e= 100; 
+        SCap4(sc) .. AccCap('LSEL', 'T0',sc) =e= 150;   
+        SCap5(sc) .. AccCap('PAP', 'T0',sc) =e= 80;  
+        ScenarioSolControl1(i,j,q).. sol(i, j, 'T0','S1',q) =e= sol(i, j, 'T0','S2',q);
+        ScenarioSolControl2(i,j,q).. sol(i, j, 'T0','S1',q) =e= sol(i, j, 'T0','S3',q);
+        ScenarioSolControl3(i,j,q).. sol(i, j, 'T0','S1',q) =e= sol(i, j, 'T0','S4',q);
+        ScenarioSolControl4(i,j,q).. sol(i, j, 'T1','S1',q) =e= sol(i, j, 'T1','S2',q);
+        ScenarioSolControl5(i,j,q).. sol(i, j, 'T1','S3',q) =e= sol(i, j, 'T1','S4',q);
         
 
 model aStaticModel /all/ ;

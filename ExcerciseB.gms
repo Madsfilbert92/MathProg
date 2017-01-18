@@ -199,8 +199,8 @@ equations
         YearlyProfit(a) ..     yz(a) =e=  power(0.95,years(a))*(sum((i,j,q), price(i,j,a,q)*sol(i,j,a,q)*ord(q)*10) - sum(i, c(i)*x(i,a)) -
                                           sum((k,q), purchase(k,q)*t(k,a,q)*ord(q)*10) +
                                           sum(fp, 0.2*x(fp,a)*40) +
-                                          sum(k, cost(k,'Alpha')*s(k,a)))
-                                          - sum(i, FixCost(i)*(cap(i, a+1)+AccCap(i,a)));                                 
+                                          sum(k, cost(k,'Alpha')*s(k,a))
+                                          - sum(i, FixCost(i)*(cap(i, a+1)+AccCap(i,a))));                                 
         sawMillCap(a)..        sum((sm), x(sm,a)) =l= sum(sm, AccCap(sm,a)); 
         plywoodMillCap(a)..    sum((pm), x(pm,a)) =l= sum(pm,  AccCap(pm,a)); ;
         line1Cap(a)..          x('HSEL', a) =l= AccCap('HSEL',a); 
@@ -213,18 +213,18 @@ equations
         NotMoreThanOneQuan(a,i,j) .. sum(q, sol(i,j,a,q)) =l= 1; 
         HSELToSell(a) .. sum((j,q), sol('HSEL', j, a, q)*ord(q)) =l= (x('HSEL',a)-0.2*x('PAP',a))/10;
         LSELToSell(a) .. sum((j,q), sol('LSEL', j, a, q)*ord(q)) =l= (x('LSEL',a)-0.2*x('PAP',a))/10; 
-        SlackFirstYear(i) .. cap(i,'T1') =e= 0;
+        SlackFirstYear(i) .. cap(i,'T0') =e= 0;
         MaxCapAdd1(a) .. sum(sm, AccCap(sm,a)) =l= 100*1.5;
         MaxCapAdd2(a) .. sum(pm, AccCap(pm,a)) =l= 90*1.5;
         MaxCapAdd3(a) .. AccCap('HSEL',a) =l= 100*2;
         MaxCapAdd4(a) .. AccCap('LSEL', a) =l= 150*2;
         MaxCapAdd5(a) .. AccCap('PAP', a) =l= 80*2;
         AccuCap(i,a)$(ord(a)>1) .. AccCap(i,a) =e= AccCap(i,a-1)+cap(i,a);
-        SCap1 .. sum(sm, AccCap(sm, 'T1')) =e= 100;
-        SCap2 .. sum(pm, AccCap(pm, 'T1')) =e= 90;  
-        SCap3 .. AccCap('HSEL', 'T1') =e= 100; 
-        SCap4 .. AccCap('LSEL', 'T1') =e= 150;   
-        SCap5 .. AccCap('PAP', 'T1') =e= 80;   
+        SCap1 .. sum(sm, AccCap(sm, 'T0')) =e= 100;
+        SCap2 .. sum(pm, AccCap(pm, 'T0')) =e= 90;  
+        SCap3 .. AccCap('HSEL', 'T0') =e= 100; 
+        SCap4 .. AccCap('LSEL', 'T0') =e= 150;   
+        SCap5 .. AccCap('PAP', 'T0') =e= 80;   
 
 model aStaticModel /all/ ;
 
@@ -250,11 +250,11 @@ annualSales(a) = sum((i,j,q),sol.l(i,j,a,q)*ord(q)*10);
 productionCosts(a) = sum(i, x.l(i,a)*c(i)) + sum((k,q), purchase(k,q)*t.l(k,a,q)*ord(q)*10);
 fix(a) = sum(i, FixCost(i)*(cap.l(i, a+1)+AccCap.l(i,a)));
 
-EXECUTIVETABLE('ATO',a) = annualSales(a);
+EXECUTIVETABLE('ATO',a) = totalSalesValue(a);
 EXECUTIVETABLE('DPC',a) = productionCosts(a);
-EXECUTIVETABLE('SP',a) = totalSalesValue(a);
+EXECUTIVETABLE('SP',a) = totalSalesValue(a)-productionCosts(a);
 EXECUTIVETABLE('FC',a) = fix(a);
 EXECUTIVETABLE('PROFIT', a) = yz.l(a);
 
 
-Display SALESOVERVIEW, EXECUTIVETABLE;
+Display SALESOVERVIEW, EXECUTIVETABLE, yz.l, z.l;
