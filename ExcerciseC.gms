@@ -212,7 +212,7 @@ equations
 
         profit ..           z =e= sum((sc,a),yz(a,sc)); 
                                   ;
-        YearlyProfit(a,sc) ..     yz(a,sc) =e=  power(0.95,years(a))*Rho(sc,a)*(sum((i,j,q), price(i,j,a,q)*sol(i,j,a,sc,q)*ord(q)*10) - sum(i, c(i)*x(i,a,sc)) -
+        YearlyProfit(a,sc) ..     yz(a,sc) =e=  power(0.95,years(a))*0.25*(sum((i,j,q), Rho(sc,a)*price(i,j,a,q)*sol(i,j,a,sc,q)*ord(q)*10) - sum(i, c(i)*x(i,a,sc)) -
                                           sum((k,q), purchase(k,q)*t(k,a,sc,q)*ord(q)*10) +
                                           sum(fp, 0.2*x(fp,a,sc)*40) +
                                           sum(k, cost(k,'Alpha')*s(k,a,sc))
