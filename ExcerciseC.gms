@@ -206,11 +206,9 @@ equations
         ScenarioSolControl1 ''
         ScenarioSolControl2 ''
         ScenarioSolControl3 ''
-        ScenarioSolControl4 ''
-        ScenarioSolControl5 ''
         ;
 
-        profit ..           z =e= sum((sc,a),yz(a,sc)); 
+        profit ..           z =e= sum((sc,a), yz(a,sc)); 
                                   ;
         YearlyProfit(a,sc) ..     yz(a,sc) =e=  power(0.95,years(a))*0.25*(sum((i,j,q), Rho(sc,a)*price(i,j,a,q)*sol(i,j,a,sc,q)*ord(q)*10) - sum(i, c(i)*x(i,a,sc)) -
                                           sum((k,q), purchase(k,q)*t(k,a,sc,q)*ord(q)*10) +
@@ -241,11 +239,9 @@ equations
         SCap3(sc) .. AccCap('HSEL', 'T0',sc) =e= 100; 
         SCap4(sc) .. AccCap('LSEL', 'T0',sc) =e= 150;   
         SCap5(sc) .. AccCap('PAP', 'T0',sc) =e= 80;  
-        ScenarioSolControl1(i,j,q).. sol(i, j, 'T0','S1',q) =e= sol(i, j, 'T0','S2',q);
-        ScenarioSolControl2(i,j,q).. sol(i, j, 'T0','S1',q) =e= sol(i, j, 'T0','S3',q);
-        ScenarioSolControl3(i,j,q).. sol(i, j, 'T0','S1',q) =e= sol(i, j, 'T0','S4',q);
-        ScenarioSolControl4(i,j,q).. sol(i, j, 'T1','S1',q) =e= sol(i, j, 'T1','S2',q);
-        ScenarioSolControl5(i,j,q).. sol(i, j, 'T1','S3',q) =e= sol(i, j, 'T1','S4',q);
+        ScenarioSolControl1(i,j,q, sc).. sol(i, j, 'T0',sc,q) =e= sol(i, j, 'T0',sc++1,q);
+        ScenarioSolControl2(i,j,q).. sol(i, j, 'T1','S1',q) =e= sol(i, j, 'T1','S2',q);
+        ScenarioSolControl3(i,j,q).. sol(i, j, 'T1','S3',q) =e= sol(i, j, 'T1','S4',q);
         
 
 model aStaticModel /all/ ;
