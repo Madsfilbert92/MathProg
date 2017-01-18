@@ -229,7 +229,7 @@ equations
 model aStaticModel /all/ ;
 
 solve aStaticModel using mip maximizing z;
-
+Display yz.L;
 parameter totalSalesValue(a);
 
 totalSalesValue(a) = sum((i,j,q), price(i,j,a,q)*sol.l(i,j,a,q)*ord(q)*10);
