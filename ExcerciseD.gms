@@ -157,7 +157,9 @@ purchase(k,q) = cost(k, 'Alpha')+cost(k,'Beta')*ord(q)*10;
 variable
     z 'max profit'
     yz(a,sc) 'profit per year' 
-    s(k,a,sc)      'surplus of timber k'
+    s(k,a,sc)      'surplus of timber k';
+
+integer variable
     x(i,a,sc)     'Produced of product i in 1000'
     
 ;
@@ -201,6 +203,7 @@ equations
         ScenarioSolControl2 'Non-anticipativity scenario 1 and 2'
         ScenarioSolControl3 'Non-anticipativity scenario 3 and 4'
         ;
+
 
         profit ..           z =e= sum((sc,a), yz(a,sc)); 
                                   ;

@@ -161,31 +161,31 @@ binary variable
 
 equations
         profit          'objective function'
-        YearlyProfit    'profitperyear'
-        materialReq     ''
-        sawMillCap      ''
-        plywoodMillCap  ''
-        line1Cap        ''
-        line2Cap        ''
-        paperMillCap    ''
-        surPlus      ''
-        SoldLessThanProduced ''
-        HSELToSell      ''
-        LSELToSell      ''
-        NotMoreThanOneQuan ''
-        NotMoreThanOneT ''
-        SlackFirstYear ''
-        MaxCapAdd1 ''
-        MaxCapAdd2 ''
-        MaxCapAdd3 ''
-        MaxCapAdd4 ''
-        MaxCapAdd5 ''
-        AccuCap ''
-        SCap1   ''
-        SCap2   ''
-        SCap3   ''
-        SCap4   ''
-        SCap5   ''
+        YearlyProfit    'profit per year'
+        materialReq     'Make sure the necessary timber is bought'
+        sawMillCap      'Restrict the amount produced at the Sawmill'
+        plywoodMillCap  'Restrict the amount produced at the Plywood mill'
+        line1Cap        'Restrict the amount produced at line 1 at pulpmill'
+        line2Cap        'Restrict the amount produced at line 2 at pulpmill'
+        paperMillCap    'Restrict the amount produced at papermill'
+        surPlus         'The surplus of timber'
+        SoldLessThanProduced 'Ensure that there is not sold more than produced'
+        HSELToSell      'The amount HSEL available for sales'
+        LSELToSell      'The amount LSEL available for sales'
+        NotMoreThanOneQuan 'Make sure that only one quantity of product in region is sold'
+        NotMoreThanOneT 'Make sure that only one quantity of timber is bought'
+        SlackFirstYear 'Make sure that there is not added any capacity in year 1'
+        MaxCapAdd1 'The maximal addition to Sawmill capacity allowed'
+        MaxCapAdd2 'The maximal addition to Plywood capacity allowed'
+        MaxCapAdd3 'The maximal addition to Softwood pulp capacity allowed'
+        MaxCapAdd4 'The maximal addition to Hardwood capacity allowed'
+        MaxCapAdd5 'The maximal addition to Paper capacity allowed'
+        AccuCap 'Calculated the '
+        SCap1   'initial capacity of Sawmill'
+        SCap2   'initial capacity Plywood mill'
+        SCap3   'initial Softwood capacity'
+        SCap4   'initial capacity of hardwood'
+        SCap5   'initial capacity of paper'
         ;
 
         profit ..           z =e= sum(a,yz(a)); 
@@ -223,7 +223,8 @@ equations
 model aStaticModel /all/ ;
 
 solve aStaticModel using mip maximizing z;
-Display yz.L;
+
+
 parameter totalSalesValue(a);
 
 totalSalesValue(a) = sum((i,j,q), price(i,j,a,q)*sol.l(i,j,a,q)*ord(q)*10);
@@ -251,4 +252,4 @@ EXECUTIVETABLE('FC',a) = fix(a);
 EXECUTIVETABLE('PROFIT', a) = yz.l(a);
 
 
-Display SALESOVERVIEW, EXECUTIVETABLE, yz.l, z.l;
+Display SALESOVERVIEW, EXECUTIVETABLE, yz.L, z.l, cap.l;

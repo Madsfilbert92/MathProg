@@ -156,12 +156,18 @@ purchase(k,q) = cost(k, 'Alpha')+cost(k,'Beta')*ord(q)*10;
 
 variable
     z 'max profit'
-    yz(a,sc) 'profit per year' 
+    yz(a,sc) 'profit per year'
+    ;
+
+integer variables
+     x(i,a,sc)     'Produced of product i in 1000'
+     ;
+
+variables 
     s(k,a,sc)      'surplus of timber k'
-    x(i,a,sc)     'Produced of product i in 1000'
     
 ;
-positive variables
+positive variable
      cap(i,a,sc)      'Slackvariable for extra capacity'
      AccCap(i,a,sc) 'accumulated capacity until a'; 
 
@@ -172,34 +178,34 @@ binary variable
 
 equations
         profit          'objective function'
-        YearlyProfit    'profit per year'
-        materialReq     'Make sure the necessary timber is bought'
-        sawMillCap      'Restrict the amount produced at the Sawmill'
-        plywoodMillCap  'Restrict the amount produced at the Plywood mill'
-        line1Cap        'Restrict the amount produced at line 1 at pulpmill'
-        line2Cap        'Restrict the amount produced at line 2 at pulpmill'
-        paperMillCap    'Restrict the amount produced at papermill'
-        surPlus         'The surplus of timber'
-        SoldLessThanProduced 'Ensure that there is not sold more than produced'
-        HSELToSell      'The amount HSEL available for sales'
-        LSELToSell      'The amount LSEL available for sales'
-        NotMoreThanOneQuan 'Make sure that only one quantity of product in region is sold'
-        NotMoreThanOneT 'Make sure that only one quantity of timber is bought'
-        SlackFirstYear 'Make sure that there is not added any capacity in year 1'
-        MaxCapAdd1 'The maximal addition to Sawmill capacity allowed'
-        MaxCapAdd2 'The maximal addition to Plywood capacity allowed'
-        MaxCapAdd3 'The maximal addition to Softwood pulp capacity allowed'
-        MaxCapAdd4 'The maximal addition to Hardwood capacity allowed'
-        MaxCapAdd5 'The maximal addition to Paper capacity allowed'
-        AccuCap 'Calculated the '
-        SCap1   'initial capacity of Sawmill'
-        SCap2   'initial capacity Plywood mill'
-        SCap3   'initial Softwood capacity'
-        SCap4   'initial capacity of hardwood'
-        SCap5   'initial capacity of paper'
-        ScenarioSolControl1 'Non-anticipativity constraint year 1'
-        ScenarioSolControl2 'Non-anticipativity scenario 1 and 2'
-        ScenarioSolControl3 'Non-anticipativity scenario 3 and 4'
+        YearlyProfit    'profitperyear'
+        materialReq     ''
+        sawMillCap      ''
+        plywoodMillCap  ''
+        line1Cap        ''
+        line2Cap        ''
+        paperMillCap    ''
+        surPlus      ''
+        SoldLessThanProduced ''
+        HSELToSell      ''
+        LSELToSell      ''
+        NotMoreThanOneQuan ''
+        NotMoreThanOneT ''
+        SlackFirstYear ''
+        MaxCapAdd1 ''
+        MaxCapAdd2 ''
+        MaxCapAdd3 ''
+        MaxCapAdd4 ''
+        MaxCapAdd5 ''
+        AccuCap ''
+        SCap1   ''
+        SCap2   ''
+        SCap3   ''
+        SCap4   ''
+        SCap5   ''
+        ScenarioSolControl1 ''
+        ScenarioSolControl2 ''
+        ScenarioSolControl3 ''
         ;
 
         profit ..           z =e= sum((sc,a), yz(a,sc)); 

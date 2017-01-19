@@ -126,18 +126,18 @@ binary variable
 
 equations
         profit 			'objective function'
-        materialReq     ''
-        sawMillCap 		''
-        plywoodMillCap 	''
-        line1Cap		''
-        line2Cap		''
-        paperMillCap	''
-        surPlus(k)		''
-        SoldLessThanProduced ''
-        HSELToSell      ''
-        LSELToSell      ''
-        NotMoreThanOneQuan ''
-        NotMoreThanOneT ''
+        materialReq     'Make sure the necessary timber is bought'
+        sawMillCap 		'Restrict the amount produced at the Sawmill'
+        plywoodMillCap 	'Restrict the amount produced at the Plywood mill'
+        line1Cap		'Restrict the amount produced at line 1 at pulpmill'
+        line2Cap		'Restrict the amount produced at line 2 at pulpmill'
+        paperMillCap	'Restrict the amount produced at papermill'
+        surPlus		    'The surplus of timber'
+        SoldLessThanProduced 'Ensure that there is not sold more than produced'
+        HSELToSell      'The amount HSEL available for sales'
+        LSELToSell      'The amount LSEL available for sales'
+        NotMoreThanOneQuan 'Make sure that only one quantity of product in region is sold'
+        NotMoreThanOneT 'Make sure that only one quantity of timber is bought'
         ;
 
 		profit .. 			z =e= sum((i,j,q), price(i,j,q)*sol(i,j,q)*ord(q)*10) - sum(i, c(i)*x(i)) -
