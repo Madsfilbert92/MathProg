@@ -113,16 +113,11 @@ parameter purchase(k,q);
 
 purchase(k,q) = cost(k, 'Alpha')+cost(k,'Beta')*ord(q)*10;
 
-variable
-    z 'max profit'
-    ;
-
-integer variables
-     x(i)     'Produced of product i in 1000'
+variables
+    z 'max profit' 
+    s(k)      'surplus of timber k'
+    x(i)     'Produced of product i in 1000'
      ;
-
-variables 
-    s(k)      'surplus of timber k';
 
 binary variable
     sol(i,j,q) 'sold product i in region j in 10000'

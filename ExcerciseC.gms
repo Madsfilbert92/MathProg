@@ -156,18 +156,12 @@ purchase(k,q) = cost(k, 'Alpha')+cost(k,'Beta')*ord(q)*10;
 
 variable
     z 'max profit'
-    yz(a,sc) 'profit per year'
-    ;
-
-integer variables
-     x(i,a,sc)     'Produced of product i in 1000'
-     ;
-
-variables 
+    yz(a,sc) 'profit per year' 
     s(k,a,sc)      'surplus of timber k'
+    x(i,a,sc)     'Produced of product i in 1000'
     
 ;
-positive variable
+positive variables
      cap(i,a,sc)      'Slackvariable for extra capacity'
      AccCap(i,a,sc) 'accumulated capacity until a'; 
 
